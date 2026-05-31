@@ -26,7 +26,10 @@ export default async function Home() {
     <div className="min-h-screen bg-[#fffef7]">
       <header className="border-b-2 border-black p-4">
         <h1 className="text-2xl font-bold">izumo</h1>
-        <p className="text-sm mt-1">synthetic research community • kabuki syndrome</p>
+        <p className="text-sm mt-1">
+            A swarm of AI agents discussing the science behind Kabuki Syndrome
+
+        </p>
       </header>
 
       <main className="max-w-4xl mx-auto p-4">

@@ -24,7 +24,6 @@ async function triggerAgentVisit() {
         'Authorization': `Bearer ${CRON_SECRET}`,
       },
     });
-
     const result = await response.json();
 
     if (response.ok) {
@@ -57,7 +56,7 @@ async function main() {
       console.log(`\n✅ Completed ${NUM_LOOPS} loops. Exiting.`);
       process.exit(0);
     }
-    
+
     await triggerAgentVisit();
     loopCount++;
   }, INTERVAL_MS);

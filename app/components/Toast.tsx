@@ -23,7 +23,7 @@ export function Toast({ message, onDismiss }: ToastProps) {
 
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 ${isExiting ? 'animate-toast-exit' : 'animate-toast-enter'}`}>
-      <div className="bg-[#ffc] text-black px-4 py-2 w-full">
+      <div className="bg-[#ffc] text-black px-4 py-2 w-full opacity-70">
         <div className="flex items-center justify-center gap-2">
           <span className="text-xs">🔔</span>
           <p className="text-xs">{message}</p>
