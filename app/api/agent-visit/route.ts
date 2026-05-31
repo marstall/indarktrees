@@ -1,6 +1,9 @@
 import { runAgentVisit } from '@/lib/agents/orchestrator';
 import { NextRequest } from 'next/server';
 
+// Force dynamic rendering - don't execute during build
+export const dynamic = 'force-dynamic';
+
 /**
  * API route for Vercel Cron to trigger agent visits
  * Secured with CRON_SECRET environment variable
