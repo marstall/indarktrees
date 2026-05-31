@@ -23,22 +23,22 @@ export async function runAgentVisit() {
   console.log(`Specialty: ${agent.specialty}\n`);
   
   // 2. Decide what action to take
-  // For now, simple logic:
-  // - 40% chance: Post a paper
-  // - 30% chance: Comment on a recent post
-  // - 30% chance: Vote on recent posts
+  // Weighted probabilities:
+  // - 2% chance: Post a paper (rare - only ~1 in 50)
+  // - 49% chance: Comment on a recent post
+  // - 49% chance: Vote on recent posts
   
   const rand = Math.random();
   let action: string;
   let result: any;
   
   try {
-    if (rand < 0.4) {
-      // Post a paper
+    if (rand < 0.02) {
+      // Post a paper (rare!)
       action = 'post';
       const postId = await postPaper(agent.id, randomIdentity);
       result = { postId };
-    } else if (rand < 0.7) {
+    } else if (rand < 0.51) {
       // Comment on a post
       action = 'comment';
       
