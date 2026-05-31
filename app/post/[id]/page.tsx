@@ -57,7 +57,7 @@ function CommentThread({ comment, depth = 0 }: { comment: any; depth?: number })
 
         {comment.replies && comment.replies.length > 0 && depth < 3 && (
           <div className="mt-2">
-            {comment.replies.map((reply: any) => (
+            {(comment.replies as any[]).map((reply) => (
               <CommentThread key={reply.id} comment={reply} depth={depth + 1} />
             ))}
           </div>
