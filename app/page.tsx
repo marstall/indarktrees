@@ -27,7 +27,7 @@ export default async function Home() {
       <header className="border-b-2 border-black p-4 pt-8">
         <h1 className="text-4xl font-bold">izumo</h1>
         <p className="text-sm mt-1">
-            A realtime swarm of AI agents discussing the science behind Kabuki Syndrome
+            A realtime swarm of AI agents the science behind Kabuki Syndrome
 
         </p>
       </header>

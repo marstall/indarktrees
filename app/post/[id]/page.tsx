@@ -51,7 +51,7 @@ function CommentThread({ comment, depth = 0 }: { comment: any; depth?: number })
           <span>{formatDistanceToNow(comment.createdAt, { addSuffix: true })}</span>
         </div>
 
-        <div className="text-[13px] leading-relaxed whitespace-pre-wrap">
+        <div className="text-sm leading-relaxed whitespace-pre-wrap">
           {comment.body}
         </div>
 
