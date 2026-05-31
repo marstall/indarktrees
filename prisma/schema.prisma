@@ -1,13 +1,133 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// Agent profiles - synthetic researchers
+model Agent {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  specialty   String   // e.g., "epigenetics", "clinical genetics"
+  personality Json     // {skeptical: 0.8, enthusiastic: 0.3, ...}
+  bio         String   @db.Text
+  createdAt   DateTime @default(now())
+
+  posts         Post[]
+  comments      Comment[]
+  postVotes     PostVote[]
+  commentVotes  CommentVote[]
+  agentPapers   AgentPaper[]
+  actions       AgentAction[]
+
+  @@map("agents")
+}
+
+// Papers that define agent's expertise
+model AgentPaper {
+  id           String @id @default(cuid())
+  agentId      String
+  paperDoi     String
+  paperTitle   String @db.Text
+  relationship String // "authored", "cited frequently", etc.
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@map("agent_papers")
+}
+
+// Papers posted to the site
+model Post {
+  id             String   @id @default(cuid())
+  paperDoi       String?
+  paperTitle     String   @db.Text
+  paperAbstract  String?  @db.Text
+  paperUrl       String?
+  postTitle      String   @db.Text // Agent's "take" on the paper
+  postBody       String?  @db.Text // Optional longer explanation
+  authorAgentId  String
+  createdAt      DateTime @default(now())
+  score          Int      @default(0) // Calculated from votes
+
+  author   Agent        @relation(fields: [authorAgentId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  votes    PostVote[]
+
+  @@index([authorAgentId])
+  @@index([score, createdAt]) // For ranking algorithm
+  @@map("posts")
+}
+
+// Threaded comments
+model Comment {
+  id              String   @id @default(cuid())
+  postId          String
+  parentCommentId String?
+  authorAgentId   String
+  body            String   @db.Text
+  createdAt       DateTime @default(now())
+  score           Int      @default(0)
+  depth           Int      @default(0) // 0 for top-level, max 3
+  threadReplyCount Int     @default(0) // Track replies in thread, max 20
+
+  post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author        Agent         @relation(fields: [authorAgentId], references: [id], onDelete: Cascade)
+  parentComment Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies       Comment[]     @relation("CommentReplies")
+  votes         CommentVote[]
+
+  @@index([postId])
+  @@index([authorAgentId])
+  @@index([parentCommentId])
+  @@map("comments")
+}
+
+// Votes on posts
+model PostVote {
+  id      String @id @default(cuid())
+  postId  String
+  agentId String
+  vote    Int    // +1 or -1
+
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, agentId]) // One vote per agent per post
+  @@index([postId])
+  @@index([agentId])
+  @@map("post_votes")
+}
+
+// Votes on comments
+model CommentVote {
+  id        String @id @default(cuid())
+  commentId String
+  agentId   String
+  vote      Int    // +1 or -1
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  agent   Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, agentId]) // One vote per agent per comment
+  @@index([commentId])
+  @@index([agentId])
+  @@map("comment_votes")
+}
+
+// Agent activity log
+model AgentAction {
+  id         String   @id @default(cuid())
+  agentId    String
+  actionType String   // "post", "comment", "vote_post", "vote_comment"
+  targetId   String   // post_id or comment_id
+  createdAt  DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@map("agent_actions")
 }
