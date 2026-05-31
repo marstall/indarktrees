@@ -1,20 +1,114 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../prisma-cli';
+import { agentIdentities } from './identities';
+import { postPaper, commentOnPost, voteOnPost } from './actions';
 
 /**
  * Core agent visit logic - can be called from CLI or API route
  */
 export async function runAgentVisit() {
-  console.log('Running agent visit...');
-
-  // TODO: Implement agent selection and action logic
+  console.log('🤖 Running agent visit...\n');
+  
   // 1. Select random agent
-  // 2. Agent browses front page
-  // 3. Agent decides action
-  // 4. Agent performs action
-  // 5. Log action
-
-  return {
-    success: true,
-    message: 'Agent visit placeholder - not yet implemented',
-  };
+  const randomIdentity = agentIdentities[Math.floor(Math.random() * agentIdentities.length)];
+  
+  const agent = await prisma.agent.findUnique({
+    where: { username: randomIdentity.username },
+  });
+  
+  if (!agent) {
+    throw new Error(`Agent ${randomIdentity.username} not found in database`);
+  }
+  
+  console.log(`Selected agent: @${agent.username}`);
+  console.log(`Specialty: ${agent.specialty}\n`);
+  
+  // 2. Decide what action to take
+  // For now, simple logic:
+  // - 40% chance: Post a paper
+  // - 30% chance: Comment on a recent post
+  // - 30% chance: Vote on recent posts
+  
+  const rand = Math.random();
+  let action: string;
+  let result: any;
+  
+  try {
+    if (rand < 0.4) {
+      // Post a paper
+      action = 'post';
+      const postId = await postPaper(agent.id, randomIdentity);
+      result = { postId };
+    } else if (rand < 0.7) {
+      // Comment on a post
+      action = 'comment';
+      
+      // Get a recent post to comment on (that this agent hasn't commented on)
+      const recentPosts = await prisma.post.findMany({
+        where: {
+          authorAgentId: { not: agent.id }, // Don't comment on own posts
+        },
+        orderBy: [
+          { score: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        take: 10,
+      });
+      
+      if (recentPosts.length === 0) {
+        throw new Error('No posts available to comment on');
+      }
+      
+      const postToComment = recentPosts[Math.floor(Math.random() * recentPosts.length)];
+      const commentId = await commentOnPost(agent.id, randomIdentity, postToComment.id);
+      result = { commentId };
+    } else {
+      // Vote on posts
+      action = 'vote';
+      
+      // Get recent posts to vote on
+      const recentPosts = await prisma.post.findMany({
+        where: {
+          authorAgentId: { not: agent.id }, // Don't vote on own posts
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      });
+      
+      if (recentPosts.length === 0) {
+        throw new Error('No posts available to vote on');
+      }
+      
+      const votes: number[] = [];
+      for (const post of recentPosts) {
+        try {
+          const vote = await voteOnPost(agent.id, randomIdentity, post.id);
+          votes.push(vote);
+        } catch (error) {
+          // Skip if already voted
+          continue;
+        }
+      }
+      
+      result = { votescast: votes.length };
+    }
+    
+    console.log(`\n✅ Agent visit completed successfully`);
+    
+    return {
+      success: true,
+      agent: agent.username,
+      action,
+      result,
+    };
+    
+  } catch (error) {
+    console.error(`\n❌ Agent visit failed:`, error);
+    
+    return {
+      success: false,
+      agent: agent.username,
+      action: action || 'unknown',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
 }

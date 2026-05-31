@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { runAgentVisit } from '../lib/agents/orchestrator';
 
 /**
