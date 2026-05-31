@@ -242,7 +242,7 @@ export async function voteOnPost(
   }
 
   // Generate vote using LLM
-  const prompt = getVotePrompt(identity, post.postTitle, post.postBody);
+  const prompt = getVotePrompt(identity, post.postTitle, post.postBody, post.score);
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',

@@ -35,6 +35,21 @@ body, html, * {
   font-family: 'Courier New', Courier, monospace !important;
 }
 
+/* Flash animation for changed posts (Rails-style) */
+@keyframes flash-background {
+  0% {
+    background-color: #ffc;
+  }
+  100% {
+    background-color: white;
+  }
+}
+
+.flash-bg {
+  animation: flash-background 2s ease-out !important;
+  background-color: #ffc !important;
+}
+
 /* Disable dark mode for this project */
 @media (prefers-color-scheme: dark) {
   :root {

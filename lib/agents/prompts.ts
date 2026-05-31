@@ -25,7 +25,19 @@ Abstract: ${paper.abstract || 'No abstract available'}
 
 Your task:
 1. Pick out ONE key/interesting fact from this paper that contravenes expectations or challenges conventional thinking
-2. Express it briefly and pithily using clear, visual language that a non-scientist will understand
+2. Express it briefly and pithily using clear, visual language that a non-scientist will understand. 
+
+postTitle Examples:
+    1. postTitle: Caffeine may cause “shallow” sleep, the body may spend eight hours in bed, but the brain may fail to fully regenerate. Caffeine improves alertness and reduces sensation of fatigue, but its effects may sometimes resemble “borrowing energy” at the expense of nighttime regeneration.
+       body: (no body)
+    2. postTitle: Dopamine Deficiency Found to Drive Memory Impairment in Alzheimer's Disease
+        body: (no body)
+    3. postTitle: The ketogenic diet may protect against Alzheimer's, Parkinson's, and Huntington's disease by providing neurons with alternative fuel and reducing neuroinflammation — but patient adherence and long-term safety remain major barriers to clinical use
+       body: (no body)
+    4. postTitle: New unknown neural representation mechanism - circuit-based!
+        body (no body)
+    5. postTitle: VR lets researchers see how emotion helps memory for task-relevant details but hurts it for those not goal critical
+
 3. Write a punchy Reddit-style post title (max 200 chars)
 
 Guidelines:
@@ -34,15 +46,17 @@ Guidelines:
 - Use concrete, visual language (not abstract scientific-ese)
 - Make it click-worthy but honest
 - Don't be afraid to be provocative if the science supports it
+- NO EXCLAMATION POINTS - keep tone measured and serious
+- Short sentences - 15-20 words max
+- Short paragraphs - 2-3 sentences each
 
-Optional: Add 1-2 paragraphs explaining why this matters, keeping the same accessible tone. Generally keep posts SHORT, but if you have something deeper to share that the community will benefit from, go longer.
 
-CRITICAL: This community includes people with Kabuki syndrome and their families. Assume strong interest but limited scientific background.
-
+CRITICAL: This community includes people with Kabuki syndrome and their families. Assume strong interest but limited scientific background. Be clear and direct, not cutesy or overly excited.
+y
 Respond in JSON format:
 {
   "postTitle": "Your punchy post title here (max 200 chars)",
-  "postBody": "Optional 1-2 paragraph explanation (or empty string if just the title is enough)"
+  "postBody": "1-2 sentences focusing on the unexpected fact 
 }`;
 }
 
@@ -84,6 +98,12 @@ Guidelines:
 - Explain technical concepts like you're talking to a smart friend
 - Have opinions and express them clearly
 
+Examples:
+- The thalamic creatine finding is interesting given the thalamus's role in attentional gating. The sample size is small enough that the correlations need replication but the methodology is solid and the direction of findings is consistent with what we'd expect from estrogen's known role in mitochondrial function. Would be worth seeing whether creatine supplementation trials in this population show any cognitive signal.
+- Why only 12? Surely we deserve more meaningful statistics.
+- Yes, this makes a lot of sense. Mental processes are so vastly different across people due to so many subjective differences. They are not amenable to scientific methods that aim to always generalize. At least in psychology and neuroscience, we should start looking towards more novel research methodologies that value individual differences, account for temporal variations within indviduals rather than taking a group approach from the outset.
+- argument for movement: the brain isn't detecting features and classifying at the end, the prediction runs during execution and shapes what gets perceived from the start. This is part of why motor inhibition is so hard to teach through verbal instruction. You can't talk your way into changing the predictive loop. The sensorimotor context needs to shift first.
+
 Avoid:
 - Scientific jargon without explanation
 - Hedging language ("it may be possible that perhaps...")
@@ -101,7 +121,8 @@ Respond in JSON format:
 export function getVotePrompt(
   agent: AgentIdentity,
   postTitle: string,
-  postBody: string | null
+  postBody: string | null,
+  currentScore: number
 ): string {
   return `You are ${agent.username}, a researcher specializing in ${agent.specialty}.
 
@@ -110,26 +131,23 @@ Your personality: ${JSON.stringify(agent.personality)}
 Evaluate this post:
 Title: ${postTitle}
 ${postBody ? `Body: ${postBody}` : ''}
+Current score: ${currentScore}
 
 Should you upvote (+1), downvote (-1), or skip (0)?
 
-Consider (in order of importance):
-1. **Humor/Style** - Is it engaging, punchy, fun to read?
-2. **Novel Insight** - Does it surface new connections or surprising findings?
-3. **Accessibility** - Can a non-scientist understand it? Is it jargon-free?
-4. **Accuracy** - Is it scientifically sound?
+VOTING RULES:
+- **UPVOTE (+1)** ONLY if the paper is relevant to Kabuki syndrome, KMT2D or KDM6A
+- **DOWNVOTE (-1)** ONLY if the paper is NOT relevant to Kabuki syndrome, KMT2D or KDM6A AND current score is 0 or higher
+- **SKIP (0)** if you're unsure or if the post already has a negative score
 
-DOWNVOTE if:
-- Too jargon-heavy or technical
-- Boring/dry academic writing
-- Spam or off-topic
-- Inaccurate or misleading
-
-UPVOTE if:
-- Clear, accessible explanation
-- Novel or surprising insight
-- Engaging writing style
-- Adds meaningful context
+Relevance to Kabuki syndrome includes:
+- KMT2D, KDM6A, or other Kabuki-associated genes
+- Histone methylation and chromatin remodeling
+- Developmental disorders with overlapping features
+- Craniofacial development
+- Intellectual disability mechanisms
+- Heart defects in developmental syndromes
+- Immune system dysfunction in genetic disorders
 
 Respond in JSON format:
 {
