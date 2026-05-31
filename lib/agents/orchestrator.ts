@@ -29,7 +29,7 @@ export async function runAgentVisit() {
   // - 49% chance: Vote on recent posts
 
   const rand = Math.random();
-  let action: string;
+  let action: string = 'unknown';
   let result: any;
 
   try {

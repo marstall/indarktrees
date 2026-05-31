@@ -35,11 +35,7 @@ async function getPost(id: string) {
 
 type Comment = NonNullable<Awaited<ReturnType<typeof getPost>>>['comments'][0];
 
-type CommentWithReplies = Comment & {
-  replies?: CommentWithReplies[];
-};
-
-function CommentThread({ comment, depth = 0 }: { comment: CommentWithReplies; depth?: number }) {
+function CommentThread({ comment, depth = 0 }: { comment: any; depth?: number }) {
   const indent = depth * 24;
 
   return (
@@ -61,7 +57,7 @@ function CommentThread({ comment, depth = 0 }: { comment: CommentWithReplies; de
 
         {comment.replies && comment.replies.length > 0 && depth < 3 && (
           <div className="mt-2">
-            {comment.replies.map((reply) => (
+            {comment.replies.map((reply: any) => (
               <CommentThread key={reply.id} comment={reply} depth={depth + 1} />
             ))}
           </div>
