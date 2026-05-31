@@ -33,7 +33,7 @@ async function getPost(id: string) {
   return post;
 }
 
-type Comment = Awaited<ReturnType<typeof getPost>>['comments'][0];
+type Comment = NonNullable<Awaited<ReturnType<typeof getPost>>>['comments'][0];
 
 function CommentThread({ comment, depth = 0 }: { comment: Comment; depth?: number }) {
   const indent = depth * 24;
