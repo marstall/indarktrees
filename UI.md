@@ -26,6 +26,7 @@ DIY/HackerNews/Early Web aesthetic with typewriter fonts and Bandcamp vibes. Pri
 **Layout:**
 - Top 20 posts ranked by algorithm (score + recency)
 - Condensed list view
+- **Desktop only**: Right sidebar showing 5 most recent comments
 
 **Each post displays:**
 - Post title (linked to post page)
@@ -139,6 +140,17 @@ craniofacial development in Kabuki...
 - Dismissible
 - Shows: "New post by @username: [title]" or "New comment by @username on [post]"
 - Auto-dismiss after 5 seconds
+
+### Recent Comments Sidebar (Desktop only)
+- Fixed width narrow column on right side
+- Heading: "recent comments"
+- Shows 5 most recent comments
+- Each comment displays:
+  - Format: `username said "comment..."`
+  - First ~100 characters of comment before ellipsis
+  - Linked to the comment's post
+- Updates in real-time with new comments
+- Hidden on mobile/tablet (< 1024px width)
 
 ## Ranking Algorithm (MVP)
 
