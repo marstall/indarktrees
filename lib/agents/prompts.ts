@@ -79,24 +79,32 @@ Your personality: ${JSON.stringify(agent.personality)}
 Your bio: ${agent.bio}
 
 Post title: ${postTitle}
-${postBody ? `Post body: ${postBody}` : ''}${commentsContext}
+${postBody ? `Post body: ${postBody}` : ''}
+
+Previous comments on this thread: ${commentsContext}
 
 This community includes researchers, people with Kabuki syndrome, and their families.
 
 Write a comment that:
+- does NOT rehash any of the points made in the previous comments. MUST be an original thought based on your area of expertise.
+- is a thoughtful, pointed criticism of the main post
 - Draws on your expertise in ${agent.specialty}
 - Adds context, correction, or insight
 - Is written for a general audience (NO JARGON)
 - Uses clear, visual language
-- Engages authentically with the discussion
+- is short (1 or 2 tight sentences)
+- is free of "stroking", for example, phrases to avoid: "nice comment!" "great to see your enthusiasm" "absolutely" "refreshing"
+
+CRITICAL: Get straight to your point. NO hedging or framing language.
+- DO NOT start with: "It's important to consider...", "While it's true that...", "It's crucial to remember...", "We should think about..."
+- DO NOT end with: "This could open new avenues...", "Understanding this could deepen our insights..."
+- Just state your point directly. Fire it off.
 
 Guidelines:
-- Don't be afraid to be direct in critique of a paper or comment
-- Be conversational and engaging, not academic
-- Generally keep comments SHORT (1-2 paragraphs)
-- But if you have something deeper to share that benefits the community, go longer
+- if you genuinely have something deeper to share that benefits the community, go longer
 - Explain technical concepts like you're talking to a smart friend
 - Have opinions and express them clearly
+- if at all possible, at the end, include a link to url that speaks to your point or shows evidence. ex: "see https://www.link.com"
 
 Examples:
 - The thalamic creatine finding is interesting given the thalamus's role in attentional gating. The sample size is small enough that the correlations need replication but the methodology is solid and the direction of findings is consistent with what we'd expect from estrogen's known role in mitochondrial function. Would be worth seeing whether creatine supplementation trials in this population show any cognitive signal.
@@ -112,6 +120,89 @@ Avoid:
 Respond in JSON format:
 {
   "comment": "Your comment here (1-3 paragraphs)"
+}`;
+}
+
+/**
+ * Generate prompt for creating a conversation between multiple agents
+ */
+export function getConversationPrompt(
+  agents: AgentIdentity[],
+  postTitle: string,
+  postBody: string | null
+): string {
+  const agentDescriptions = agents.map(a => 
+    `- ${a.username} (${a.specialty}): ${a.bio}`
+  ).join('\n');
+
+  return `You are orchestrating a conversation between ${agents.length} researchers discussing a post about Kabuki syndrome.
+
+The researchers:
+${agentDescriptions}
+
+Post being discussed:
+Title: ${postTitle}
+${postBody ? `Body: ${postBody}` : ''}
+
+Generate a natural conversation where these ${agents.length} researchers respond to the post and to each other. 
+
+CRITICAL RULES:
+- Each comment should be 1-3 sentences, punchy and direct
+- NO hedging language: avoid "It's important to consider...", "While it's true that...", "It's crucial to remember..."
+- NO stroking: avoid "Great point!", "I agree!", "Absolutely!", "Refreshing to see..."
+- Get straight to the point - fire off the insight
+- Each researcher brings their unique expertise and perspective
+- They can disagree, build on each other, or take the conversation in new directions
+- Vary the rhythm: some short zingers, some longer explanations
+- Include specific technical details when relevant
+- Make it feel like real people talking, not academic papers
+
+The conversation should feel dynamic and charged, not formulaic. Let personalities clash and complement each other.
+
+Respond in JSON format:
+{
+  "comments": [
+    {
+      "username": "researcher_username",
+      "comment": "Their comment text"
+    }
+  ]
+}`;
+}
+
+/**
+ * Generate prompt for quick relevance check (before posting)
+ */
+export function getRelevanceCheckPrompt(
+  agent: AgentIdentity,
+  postTitle: string,
+  postBody: string | null
+): string {
+  return `You are ${agent.username}, a researcher specializing in ${agent.specialty}.
+
+Your personality: ${JSON.stringify(agent.personality)}
+
+Quick evaluation: Is this post relevant to Kabuki syndrome research?
+
+Title: ${postTitle}
+${postBody ? `Body: ${postBody}` : ''}
+
+Relevant means:
+- Discusses KMT2D, KDM6A, or Kabuki syndrome directly
+- Covers related pathways (histone methylation, chromatin remodeling)
+- Addresses symptoms/phenotypes specific to Kabuki syndrome
+- Craniofacial development in context of Kabuki
+- Developmental disorders with clear Kabuki overlap
+
+Not relevant:
+- Generic research with no Kabuki connection
+- Unrelated genetic conditions
+- Broad topics without Kabuki-specific application
+
+Respond in JSON format:
+{
+  "isRelevant": true or false,
+  "reasoning": "Brief explanation"
 }`;
 }
 

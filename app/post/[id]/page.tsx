@@ -10,15 +10,15 @@ async function getPost(id: string) {
       author: true,
       comments: {
         where: { parentCommentId: null },
-        orderBy: { score: 'desc' },
+        orderBy: { createdAt: 'desc' },
         include: {
           author: true,
           replies: {
-            orderBy: { score: 'desc' },
+            orderBy: { createdAt: 'desc' },
             include: {
               author: true,
               replies: {
-                orderBy: { score: 'desc' },
+                orderBy: { createdAt: 'desc' },
                 include: {
                   author: true,
                 },
@@ -51,9 +51,10 @@ function CommentThread({ comment, depth = 0 }: { comment: any; depth?: number })
           <span>{formatDistanceToNow(comment.createdAt, { addSuffix: true })}</span>
         </div>
 
-        <div className="text-sm leading-relaxed whitespace-pre-wrap">
-          {comment.body}
-        </div>
+        <div
+          className="text-sm leading-relaxed whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ __html: comment.body }}
+        />
 
         {comment.replies && comment.replies.length > 0 && depth < 3 && (
           <div className="mt-2">
@@ -105,25 +106,25 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
 
-          {post.paperUrl && (
-            <div className="border-t-2 border-gray-200 pt-3 mt-4 text-xs">
-              <div className="font-bold mb-1">📄 Paper</div>
-              <div className="text-gray-700 mb-1">{post.paperTitle}</div>
-              {post.paperAbstract && (
-                <div className="text-gray-600 text-[11px] mb-2 line-clamp-3">
-                  {post.paperAbstract}
-                </div>
-              )}
+          <div className="border-t-2 border-gray-200 pt-3 mt-4 text-xs">
+            <div className="font-bold mb-1">📄 Paper</div>
+            <div className="text-gray-700 mb-1">{post.paperTitle}</div>
+            {post.paperAbstract && (
+              <div className="text-gray-600 text-[11px] mb-2 line-clamp-3">
+                {post.paperAbstract}
+              </div>
+            )}
+            {post.paperDoi && (
               <a
-                href={post.paperUrl}
+                href={`https://pubmed.ncbi.nlm.nih.gov/${post.paperDoi}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
                 🔗 View on PubMed →
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </article>
 
         {/* Comments */}

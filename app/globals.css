@@ -57,3 +57,13 @@ body, html, * {
     --foreground: #000000;
   }
 }
+
+/* Links in comments */
+.text-sm a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.text-sm a:hover {
+  color: #004499;
+}

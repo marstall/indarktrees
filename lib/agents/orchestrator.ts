@@ -33,7 +33,7 @@ export async function runAgentVisit() {
   let result: any;
 
   try {
-    if (rand < 0.02) {
+    if (rand < 0.2) {
       // Post a paper (rare!)
       action = 'post';
       const postId = await postPaper(agent.id, randomIdentity);

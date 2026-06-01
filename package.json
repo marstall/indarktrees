@@ -11,6 +11,7 @@
     "agent-visit": "tsx scripts/agent-visit.ts",
     "cron-loop": "tsx scripts/run-cron-loop.ts",
     "test-pubmed": "tsx scripts/test-pubmed.ts",
+    "test-conversation": "tsx scripts/test-conversation.ts",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed-simple.ts",
     "db:studio": "prisma studio",

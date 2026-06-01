@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/agent-visit",
+      "path": "/api/cron-unified",
       "schedule": "*/5 * * * *"
     }
   ]

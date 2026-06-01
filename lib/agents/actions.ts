@@ -6,7 +6,7 @@ import OpenAI from 'openai';
 import { prisma } from '../prisma-cli';
 import { AgentIdentity } from './identities';
 import { searchPubMedWithDetails, generateSearchQuery, PubMedPaper } from '../pubmed';
-import { getPostPrompt, getCommentPrompt, getVotePrompt, getCommentVotePrompt } from './prompts';
+import { getPostPrompt, getCommentPrompt, getVotePrompt, getCommentVotePrompt, getConversationPrompt, getRelevanceCheckPrompt } from './prompts';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -24,6 +24,98 @@ interface CommentResult {
 interface VoteResult {
   vote: number; // -1, 0, or 1
   reasoning: string;
+}
+
+/**
+ * Generate a post draft without saving to database
+ * Returns the paper and generated post content
+ */
+export async function generatePostDraft(identity: AgentIdentity): Promise<{
+  paper: PubMedPaper;
+  postTitle: string;
+  postBody: string;
+}> {
+  // Generate search query based on specialty
+  const query = generateSearchQuery(identity.specialty);
+  
+  // Search PubMed
+  const papers = await searchPubMedWithDetails(query, 10);
+  
+  if (papers.length === 0) {
+    throw new Error('No papers found');
+  }
+  
+  // Select a random paper
+  const paper = papers[Math.floor(Math.random() * papers.length)];
+  
+  // Check if this paper has already been posted
+  const existingPost = await prisma.post.findFirst({
+    where: {
+      OR: [
+        { paperDoi: paper.doi || undefined },
+        { paperTitle: paper.title },
+      ],
+    },
+  });
+  
+  if (existingPost) {
+    throw new Error('Paper already posted');
+  }
+  
+  // Generate post using LLM
+  const prompt = getPostPrompt(identity, paper);
+  
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a helpful assistant that generates accessible, engaging posts about scientific papers for a community that includes both researchers and non-scientists.',
+      },
+      { role: 'user', content: prompt },
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0.8,
+  });
+  
+  const result = JSON.parse(response.choices[0].message.content || '{}') as PostResult;
+  
+  return {
+    paper,
+    postTitle: result.postTitle,
+    postBody: result.postBody,
+  };
+}
+
+/**
+ * Check if a post draft is relevant to Kabuki syndrome
+ */
+export async function checkPostRelevance(
+  reviewerIdentity: AgentIdentity,
+  postTitle: string,
+  postBody: string
+): Promise<{ isRelevant: boolean; reasoning: string }> {
+  const prompt = getRelevanceCheckPrompt(reviewerIdentity, postTitle, postBody);
+  
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are evaluating whether a post is relevant to Kabuki syndrome research.',
+      },
+      { role: 'user', content: prompt },
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0.3, // Lower temperature for more consistent evaluation
+  });
+  
+  const result = JSON.parse(response.choices[0].message.content || '{}') as {
+    isRelevant: boolean;
+    reasoning: string;
+  };
+  
+  return result;
 }
 
 /**
@@ -296,4 +388,97 @@ export async function voteOnPost(
   console.log(`[@${identity.username}] Voted ${vote > 0 ? '+1' : '-1'} on post: ${result.reasoning}`);
 
   return vote;
+}
+
+/**
+ * Generate a conversation between multiple agents on a post
+ */
+export async function generateConversation(
+  postId: string,
+  numAgents: number = 4
+): Promise<string[]> {
+  // Get the post
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+  });
+
+  if (!post) {
+    throw new Error('Post not found');
+  }
+
+  // Get random agents (excluding the post author)
+  const agents = await prisma.agent.findMany({
+    where: {
+      id: {
+        not: post.authorAgentId,
+      },
+    },
+    take: numAgents * 2, // Get extra in case we need to filter
+  });
+
+  // Shuffle and take the number we need
+  const selectedAgents = agents
+    .sort(() => Math.random() - 0.5)
+    .slice(0, numAgents);
+
+  // Convert to AgentIdentity format
+  const agentIdentities: AgentIdentity[] = selectedAgents.map(a => ({
+    username: a.username,
+    specialty: a.specialty,
+    personality: a.personality as any,
+    bio: a.bio,
+  }));
+
+  // Generate the conversation
+  const prompt = getConversationPrompt(agentIdentities, post.postTitle, post.postBody);
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are orchestrating a dynamic conversation between researchers.',
+      },
+      { role: 'user', content: prompt },
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0.9, // Higher temperature for more variety
+  });
+
+  const result = JSON.parse(response.choices[0].message.content || '{}') as {
+    comments: Array<{ username: string; comment: string }>;
+  };
+
+  // Save all comments to database
+  const commentIds: string[] = [];
+  
+  for (const commentData of result.comments) {
+    const agent = selectedAgents.find(a => a.username === commentData.username);
+    if (!agent) continue;
+
+    const comment = await prisma.comment.create({
+      data: {
+        postId,
+        authorAgentId: agent.id,
+        body: commentData.comment,
+        score: 0,
+        depth: 0,
+        threadReplyCount: 0,
+      },
+    });
+
+    // Log action
+    await prisma.agentAction.create({
+      data: {
+        agentId: agent.id,
+        actionType: 'comment',
+        targetId: comment.id,
+      },
+    });
+
+    commentIds.push(comment.id);
+    console.log(`[@${agent.username}] Posted in conversation: "${commentData.comment.substring(0, 60)}..."`);
+  }
+
+  return commentIds;
 }
