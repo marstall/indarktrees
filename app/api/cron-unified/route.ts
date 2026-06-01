@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
     console.log(`📊 Total agents: ${agents.length}`);
 
     // 2. Loop until we find a relevant post (max 5 attempts)
-    let postDraft = null;
-    let postAuthor = null;
+    let postDraft: { paper: any; postTitle: string; postBody: string } | null = null;
+    let postAuthor: any = null;
     let attemptsCount = 0;
     const maxAttempts = 5;
 
