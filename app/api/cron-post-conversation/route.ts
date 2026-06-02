@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // 3. Generate conversation (4 agents)
     console.log(`💬 Generating conversation with 4 agents...`);
-    const commentIds = await generateConversation(postId, 4);
+    const commentIds = await generateConversation(postId);
 
     console.log(`✅ Success! Created post ${postId} with ${commentIds.length} comments\n`);
 

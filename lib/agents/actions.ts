@@ -6,7 +6,7 @@ import OpenAI from 'openai';
 import { prisma } from '../prisma-cli';
 import { AgentIdentity } from './identities';
 import { searchPubMedWithDetails, generateSearchQuery, PubMedPaper } from '../pubmed';
-import { getPostPrompt, getCommentPrompt, getVotePrompt, getCommentVotePrompt, getConversationPrompt, getRelevanceCheckPrompt } from './prompts';
+import { getPostPrompt, getCommentPrompt, getVotePrompt, getCommentVotePrompt, getRelevanceCheckPrompt, getMrExplainerPrompt, getSpecialistsPrompt, getTheConnectorPrompt, getAcidTripperPrompt } from './prompts';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -391,94 +391,91 @@ export async function voteOnPost(
 }
 
 /**
- * Generate a conversation between multiple agents on a post
+ * Generate a structured 7-comment discussion on a post:
+ * 1. MrExplainer (ELI5)
+ * 2. NeuroscienceLady, GeneticsPerson, TheClinician, EnvironmentalEnhancementGuy (parallel specialists)
+ * 3. TheConnector (reads all prior)
+ * 4. AcidTripper (reads all prior, goes outside the box)
  */
 export async function generateConversation(
   postId: string,
-  numAgents: number = 4
 ): Promise<string[]> {
-  // Get the post
-  const post = await prisma.post.findUnique({
-    where: { id: postId },
-  });
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+  if (!post) throw new Error('Post not found');
 
-  if (!post) {
-    throw new Error('Post not found');
+  // Build a lookup map by username
+  const agents = await prisma.agent.findMany();
+  const agentMap = new Map(agents.map(a => [a.username, a]));
+
+  const commentIds: string[] = [];
+  const priorComments: Array<{ username: string; comment: string }> = [];
+
+  async function saveComment(username: string, body: string): Promise<void> {
+    const agent = agentMap.get(username);
+    if (!agent) {
+      console.warn(`⚠️ Agent @${username} not found in DB, skipping`);
+      return;
+    }
+    const comment = await prisma.comment.create({
+      data: { postId, authorAgentId: agent.id, body, score: 0, depth: 0, threadReplyCount: 0 },
+    });
+    await prisma.agentAction.create({
+      data: { agentId: agent.id, actionType: 'comment', targetId: comment.id },
+    });
+    commentIds.push(comment.id);
+    console.log(`[@${username}] "${body.substring(0, 80)}..."`);
   }
 
-  // Get random agents (excluding the post author)
-  const agents = await prisma.agent.findMany({
-    where: {
-      id: {
-        not: post.authorAgentId,
-      },
-    },
-    take: numAgents * 2, // Get extra in case we need to filter
-  });
-
-  // Shuffle and take the number we need
-  const selectedAgents = agents
-    .sort(() => Math.random() - 0.5)
-    .slice(0, numAgents);
-
-  // Convert to AgentIdentity format
-  const agentIdentities: AgentIdentity[] = selectedAgents.map(a => ({
-    username: a.username,
-    specialty: a.specialty,
-    personality: a.personality as any,
-    bio: a.bio,
-  }));
-
-  // Generate the conversation
-  const prompt = getConversationPrompt(agentIdentities, post.postTitle, post.postBody);
-
-  const response = await openai.chat.completions.create({
+  // Step 1: MrExplainer
+  console.log('\n📖 Step 1: MrExplainer...');
+  const explainerRes = await openai.chat.completions.create({
     model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are orchestrating a dynamic conversation between researchers.',
-      },
-      { role: 'user', content: prompt },
-    ],
+    messages: [{ role: 'user', content: getMrExplainerPrompt(post.postTitle, post.postBody, post.paperAbstract) }],
     response_format: { type: 'json_object' },
-    temperature: 0.9, // Higher temperature for more variety
+    temperature: 0.7,
   });
+  const explainerResult = JSON.parse(explainerRes.choices[0].message.content || '{}') as { comment: string };
+  await saveComment('MrExplainer', explainerResult.comment);
+  priorComments.push({ username: 'MrExplainer', comment: explainerResult.comment });
 
-  const result = JSON.parse(response.choices[0].message.content || '{}') as {
+  // Step 2: Four specialists (batched in one call)
+  console.log('\n🔬 Step 2: NeuroscienceLady, GeneticsPerson, TheClinician, EnvironmentalEnhancementGuy...');
+  const specialistsRes = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: getSpecialistsPrompt(post.postTitle, post.postBody, post.paperAbstract, explainerResult.comment) }],
+    response_format: { type: 'json_object' },
+    temperature: 0.7,
+  });
+  const specialistsResult = JSON.parse(specialistsRes.choices[0].message.content || '{}') as {
     comments: Array<{ username: string; comment: string }>;
   };
-
-  // Save all comments to database
-  const commentIds: string[] = [];
-  
-  for (const commentData of result.comments) {
-    const agent = selectedAgents.find(a => a.username === commentData.username);
-    if (!agent) continue;
-
-    const comment = await prisma.comment.create({
-      data: {
-        postId,
-        authorAgentId: agent.id,
-        body: commentData.comment,
-        score: 0,
-        depth: 0,
-        threadReplyCount: 0,
-      },
-    });
-
-    // Log action
-    await prisma.agentAction.create({
-      data: {
-        agentId: agent.id,
-        actionType: 'comment',
-        targetId: comment.id,
-      },
-    });
-
-    commentIds.push(comment.id);
-    console.log(`[@${agent.username}] Posted in conversation: "${commentData.comment.substring(0, 60)}..."`);
+  for (const c of specialistsResult.comments) {
+    await saveComment(c.username, c.comment);
+    priorComments.push(c);
   }
+
+  // Step 3: TheConnector
+  console.log('\n🔗 Step 3: TheConnector...');
+  const connectorRes = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: getTheConnectorPrompt(post.postTitle, post.postBody, post.paperAbstract, priorComments) }],
+    response_format: { type: 'json_object' },
+    temperature: 0.7,
+  });
+  const connectorResult = JSON.parse(connectorRes.choices[0].message.content || '{}') as { comment: string };
+  await saveComment('TheConnector', connectorResult.comment);
+  priorComments.push({ username: 'TheConnector', comment: connectorResult.comment });
+
+  // Step 4: AcidTripper
+  console.log('\n🌀 Step 4: AcidTripper...');
+  const acidRes = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: getAcidTripperPrompt(post.postTitle, post.postBody, post.paperAbstract, priorComments) }],
+    response_format: { type: 'json_object' },
+    temperature: 0.9,
+  });
+  const acidResult = JSON.parse(acidRes.choices[0].message.content || '{}') as { comment: string };
+  await saveComment('AcidTripper', acidResult.comment);
 
   return commentIds;
 }

@@ -12,6 +12,7 @@
     "cron-loop": "tsx scripts/run-cron-loop.ts",
     "test-pubmed": "tsx scripts/test-pubmed.ts",
     "test-conversation": "tsx scripts/test-conversation.ts",
+    "generate-posts": "tsx scripts/generate-posts.ts",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed-simple.ts",
     "db:studio": "prisma studio",
