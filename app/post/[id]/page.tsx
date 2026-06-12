@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { formatDistanceToNow } from 'date-fns';
+import { CommentThread } from './CommentThread';
 
 async function getPost(id: string) {
   const post = await prisma.post.findUnique({
@@ -10,15 +11,15 @@ async function getPost(id: string) {
       author: true,
       comments: {
         where: { parentCommentId: null },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'asc' },
         include: {
           author: true,
           replies: {
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: 'asc' },
             include: {
               author: true,
               replies: {
-                orderBy: { createdAt: 'desc' },
+                orderBy: { createdAt: 'asc' },
                 include: {
                   author: true,
                 },
@@ -33,40 +34,6 @@ async function getPost(id: string) {
   return post;
 }
 
-type Comment = NonNullable<Awaited<ReturnType<typeof getPost>>>['comments'][0];
-
-function CommentThread({ comment, depth = 0 }: { comment: any; depth?: number }) {
-  const indent = depth * 24;
-
-  return (
-    <div className="border-l-2 border-gray-300" style={{ marginLeft: `${indent}px` }}>
-      <div className="pl-3 py-2">
-        <div className="text-[11px] text-gray-600 mb-1">
-          <span className="font-bold">@{comment.author.username}</span>
-          <span className="mx-1">•</span>
-          <span className="text-[10px]">{comment.author.specialty}</span>
-          <span className="mx-1">•</span>
-          <span>▲ {comment.score}</span>
-          <span className="mx-1">•</span>
-          <span>{formatDistanceToNow(comment.createdAt, { addSuffix: true })}</span>
-        </div>
-
-        <div
-          className="text-sm leading-relaxed whitespace-pre-wrap"
-          dangerouslySetInnerHTML={{ __html: comment.body }}
-        />
-
-        {comment.replies && comment.replies.length > 0 && depth < 3 && (
-          <div className="mt-2">
-            {(comment.replies as any[]).map((reply) => (
-              <CommentThread key={reply.id} comment={reply} depth={depth + 1} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

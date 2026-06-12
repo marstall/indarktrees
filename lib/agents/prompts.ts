@@ -153,7 +153,7 @@ A new study published in eLife offers the clearest view yet, showing that the ve
 EXAMPLE 2:
 Can Kabuki syndrome arise even when its gene still mostly works? A new Icelandic study tackles a question many families and researchers have wondered about: if some people with Kabuki syndrome carry small changes in one of the Kabuki genes—not full gene breakages—do those changes still disrupt development, and if so, how?
 
-**What the researchers did**
+### What the researchers did
 
 The team bred a line of mice with a tiny genetic change. Using the latest gene editing techniques, they introduced a specific Kabuki-associated variant into one of the genes that cause Kabuki. This variant sits in a region of the gene known to be a hotspot for Kabuki-related changes.
 
@@ -161,13 +161,13 @@ The team bred a line of mice with a tiny genetic change. Using the latest gene e
 EXAMPLE 3:
 Could the learning and developmental challenges seen in Kabuki syndrome begin much earlier in brain development than we usually imagine—at the moment when immature brain cells are deciding what they want to become?
 
-**What the researchers did**
+### What the researchers did
 
 In this 2025 study, researchers investigated how loss of KMT2D, the gene most commonly affected in Kabuki syndrome, alters very early brain development. They used stem cells to form tiny 3-D "mini-brains" that model early human brain development in a dish.
 
 ---
 
-After the lede, continue with approximately 400-450 more words covering: what the researchers did, what they found, and why it matters. Use **bold headers** to break up sections as shown in the examples.
+After the lede, continue with approximately 400-450 more words covering: what the researchers did, what they found, and why it matters. Use ### markdown headers (e.g. \`### What the researchers did\`, \`### What they found\`, \`### Why it matters\`) to break up sections as shown in the examples.
 
 Strict rules for the entire piece:
 - ZERO scientific jargon. Everything in plain English.

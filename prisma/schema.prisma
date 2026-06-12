@@ -117,6 +117,27 @@ model CommentVote {
   @@map("comment_votes")
 }
 
+// Research papers ingested from academic databases
+model Paper {
+  id              String   @id @default(cuid())
+  pmid            String?  @unique
+  doi             String?  @unique
+  title           String   @db.Text
+  abstract        String?  @db.Text
+  authors         String?  @db.Text
+  journal         String?
+  year            Int?
+  url             String?
+  fullText        String?  @db.Text
+  fullTextSource  String?  // 'europepmc', 'html', 'pdf', 'abstract_only'
+  isRelevant      Boolean  @default(false)
+  relevanceReason String?  @db.Text
+  searchTopics    String?  @db.Text // comma-separated topics that surfaced this paper
+  createdAt       DateTime @default(now())
+
+  @@map("papers")
+}
+
 // Agent activity log
 model AgentAction {
   id         String   @id @default(cuid())

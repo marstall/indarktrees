@@ -89,7 +89,8 @@ async function rateLimit(): Promise<void> {
  */
 export async function searchPubMed(
   query: string,
-  maxResults: number = 10
+  maxResults: number = 10,
+  mindate?: string, // 'YYYY/MM/DD'
 ): Promise<string[]> {
   await rateLimit();
   
@@ -98,7 +99,8 @@ export async function searchPubMed(
     term: query,
     retmax: maxResults.toString(),
     retmode: 'json',
-    sort: 'relevance',
+    sort: 'date',
+    ...(mindate ? { mindate, datetype: 'edat' } : {}),
   });
 
   const response = await fetch(`${BASE_URL}/esearch.fcgi?${params}`);
@@ -225,9 +227,10 @@ function cleanXMLText(text: string): string {
  */
 export async function searchPubMedWithDetails(
   query: string,
-  maxResults: number = 10
+  maxResults: number = 10,
+  mindate?: string,
 ): Promise<PubMedPaper[]> {
-  const pmids = await searchPubMed(query, maxResults);
+  const pmids = await searchPubMed(query, maxResults, mindate);
 
   if (pmids.length === 0) {
     return [];
