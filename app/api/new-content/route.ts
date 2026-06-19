@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
         },
       },
       include: {
-        author: true,
+        authorAgent: true,
+        authorPaper: true,
         post: true,
       },
       orderBy: {
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
         type: 'comment' as const,
         id: comment.id,
         title: comment.post.postTitle,
-        author: comment.author.username,
+        author: comment.authorAgent?.username ?? comment.authorPaper?.authors?.split(',')[0]?.split(' ')[0] ?? 'paper',
         createdAt: comment.createdAt,
       })),
     ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());

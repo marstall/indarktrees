@@ -10,9 +10,16 @@ export async function GET() {
         createdAt: 'desc',
       },
       include: {
-        author: {
+        authorAgent: {
           select: {
             username: true,
+          },
+        },
+        authorPaper: {
+          select: {
+            authors: true,
+            year: true,
+            title: true,
           },
         },
         post: {

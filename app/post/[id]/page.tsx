@@ -13,15 +13,18 @@ async function getPost(id: string) {
         where: { parentCommentId: null },
         orderBy: { createdAt: 'asc' },
         include: {
-          author: true,
+          authorAgent: true,
+          authorPaper: true,
           replies: {
             orderBy: { createdAt: 'asc' },
             include: {
-              author: true,
+              authorAgent: true,
+              authorPaper: true,
               replies: {
                 orderBy: { createdAt: 'asc' },
                 include: {
-                  author: true,
+                  authorAgent: true,
+                  authorPaper: true,
                 },
               },
             },

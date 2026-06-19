@@ -14,6 +14,8 @@
     "test-conversation": "tsx scripts/test-conversation.ts",
     "generate-posts": "tsx scripts/generate-posts.ts",
     "ingest-papers": "tsx scripts/ingest-papers.ts",
+    "embed-papers": "tsx scripts/embed-papers.ts",
+    "comment-post": "tsx scripts/comment-post.ts",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed-simple.ts",
     "db:studio": "prisma studio",
@@ -23,6 +25,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",
     "@prisma/adapter-pg": "^7.8.0",

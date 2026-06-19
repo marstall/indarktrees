@@ -16,7 +16,7 @@ model Agent {
   createdAt   DateTime @default(now())
 
   posts         Post[]
-  comments      Comment[]
+  comments      Comment[]  @relation("AgentComments")
   postVotes     PostVote[]
   commentVotes  CommentVote[]
   agentPapers   AgentPaper[]
@@ -66,7 +66,8 @@ model Comment {
   id              String   @id @default(cuid())
   postId          String
   parentCommentId String?
-  authorAgentId   String
+  authorAgentId   String?  // null for paper-authored comments
+  authorPaperId   String?  // null for agent-authored comments
   body            String   @db.Text
   createdAt       DateTime @default(now())
   score           Int      @default(0)
@@ -74,7 +75,8 @@ model Comment {
   threadReplyCount Int     @default(0) // Track replies in thread, max 20
 
   post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author        Agent         @relation(fields: [authorAgentId], references: [id], onDelete: Cascade)
+  authorAgent   Agent?        @relation("AgentComments", fields: [authorAgentId], references: [id], onDelete: SetNull)
+  authorPaper   Paper?        @relation(fields: [authorPaperId], references: [id], onDelete: SetNull)
   parentComment Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
   replies       Comment[]     @relation("CommentReplies")
   votes         CommentVote[]
@@ -133,7 +135,10 @@ model Paper {
   isRelevant      Boolean  @default(false)
   relevanceReason String?  @db.Text
   searchTopics    String?  @db.Text // comma-separated topics that surfaced this paper
+  embedding       Json?    // float[] from text-embedding-3-small
   createdAt       DateTime @default(now())
+
+  comments        Comment[]
 
   @@map("papers")
 }

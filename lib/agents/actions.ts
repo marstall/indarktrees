@@ -7,6 +7,8 @@ import { prisma } from '../prisma-cli';
 import { AgentIdentity } from './identities';
 import { searchPubMedWithDetails, generateSearchQuery, PubMedPaper } from '../pubmed';
 import { getPostPrompt, getCommentPrompt, getVotePrompt, getCommentVotePrompt, getRelevanceCheckPrompt, getMrExplainerPrompt, getSpecialistsPrompt, getTheConnectorPrompt, getAcidTripperPrompt } from './prompts';
+import { embedText, findSimilarPapers } from '../papers/embeddings';
+import { auditionPaper, generatePaperComment, getPaperVote, formatByline } from '../papers/paper-comments';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -32,39 +34,48 @@ interface VoteResult {
  */
 export async function generatePostDraft(identity: AgentIdentity): Promise<{
   paper: PubMedPaper;
+  paperId: string;
   postTitle: string;
   postBody: string;
 }> {
-  // Generate search query based on specialty
-  const query = generateSearchQuery(identity.specialty);
-  
-  // Search PubMed
-  const papers = await searchPubMedWithDetails(query, 10);
-  
-  if (papers.length === 0) {
-    throw new Error('No papers found');
-  }
-  
-  // Select a random paper
-  const paper = papers[Math.floor(Math.random() * papers.length)];
-  
-  // Check if this paper has already been posted
-  const existingPost = await prisma.post.findFirst({
+  // Pull candidate papers from DB (relevant, not yet posted)
+  const postedDois = (await prisma.post.findMany({ select: { paperDoi: true } }))
+    .map(p => p.paperDoi)
+    .filter(Boolean) as string[];
+  const postedTitles = (await prisma.post.findMany({ select: { paperTitle: true } }))
+    .map(p => p.paperTitle)
+    .filter(Boolean) as string[];
+
+  const candidates = await prisma.paper.findMany({
     where: {
-      OR: [
-        { paperDoi: paper.doi || undefined },
-        { paperTitle: paper.title },
-      ],
+      isRelevant: true,
+      ...(postedDois.length > 0 ? { doi: { notIn: postedDois } } : {}),
+      title: { notIn: postedTitles },
     },
+    select: { id: true, pmid: true, doi: true, title: true, abstract: true, authors: true, journal: true, year: true, url: true },
   });
-  
-  if (existingPost) {
-    throw new Error('Paper already posted');
+
+  if (candidates.length === 0) {
+    throw new Error('No unposted relevant papers in DB — run ingest-papers first');
   }
-  
-  // Generate post using LLM
+
+  // Pick a random candidate
+  const dbPaper = candidates[Math.floor(Math.random() * candidates.length)];
+
+  // Map to PubMedPaper shape expected by the prompt
+  const paper: PubMedPaper = {
+    pmid: dbPaper.pmid ?? '',
+    doi: dbPaper.doi ?? undefined,
+    title: dbPaper.title,
+    abstract: dbPaper.abstract ?? undefined,
+    authors: dbPaper.authors ? dbPaper.authors.split(',').map(a => a.trim()) : [],
+    journal: dbPaper.journal ?? undefined,
+    pubDate: dbPaper.year ? String(dbPaper.year) : undefined,
+    url: dbPaper.url ?? `https://pubmed.ncbi.nlm.nih.gov/${dbPaper.pmid}/`,
+  };
+
+  // Generate post title + body
   const prompt = getPostPrompt(identity, paper);
-  
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
@@ -77,11 +88,12 @@ export async function generatePostDraft(identity: AgentIdentity): Promise<{
     response_format: { type: 'json_object' },
     temperature: 0.8,
   });
-  
+
   const result = JSON.parse(response.choices[0].message.content || '{}') as PostResult;
-  
+
   return {
     paper,
+    paperId: dbPaper.id,
     postTitle: result.postTitle,
     postBody: result.postBody,
   };
@@ -224,7 +236,7 @@ export async function commentOnPost(
         take: 5,
         orderBy: { score: 'desc' },
         include: {
-          author: true,
+          authorAgent: true,
         },
       },
     },
@@ -255,7 +267,7 @@ export async function commentOnPost(
     post.postTitle,
     post.postBody,
     post.comments.map(c => ({
-      author: c.author.username,
+      author: c.authorAgent?.username ?? 'paper',
       body: c.body,
     }))
   );
@@ -476,6 +488,128 @@ export async function generateConversation(
   });
   const acidResult = JSON.parse(acidRes.choices[0].message.content || '{}') as { comment: string };
   await saveComment('AcidTripper', acidResult.comment);
+
+  return commentIds;
+}
+
+/**
+ * New conversation architecture: MrExplainer + paper-as-commenter system.
+ *
+ * Flow:
+ *   1. MrExplainer writes the plain-English explainer (GPT-4o)
+ *   2. Post paper is embedded; top 25 similar papers are fetched
+ *   3. Each candidate paper auditions (Claude Haiku — cheap)
+ *   4. Papers that pass generate a comment (Claude Sonnet)
+ *   5. 5 random papers vote on all comments (Claude Haiku)
+ */
+export async function generatePaperConversation(postId: string): Promise<string[]> {
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+  if (!post) throw new Error('Post not found');
+
+  const commentIds: string[] = [];
+  const commentBodies: string[] = [];
+
+  // ── Step 1: MrExplainer (GPT-4o, same as before) ──────────────────────────
+  console.log('\n📖 Step 1: MrExplainer...');
+  const mrExplainer = await prisma.agent.findFirst({ where: { username: 'MrExplainer' } });
+  if (!mrExplainer) throw new Error('MrExplainer agent not found in DB');
+
+  const explainerRes = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: getMrExplainerPrompt(post.postTitle, post.postBody, post.paperAbstract) }],
+    response_format: { type: 'json_object' },
+    temperature: 0.7,
+  });
+  const explainerResult = JSON.parse(explainerRes.choices[0].message.content || '{}') as { comment: string };
+  const explainerComment = await prisma.comment.create({
+    data: { postId, authorAgentId: mrExplainer.id, body: explainerResult.comment, score: 0, depth: 0, threadReplyCount: 0 },
+  });
+  await prisma.agentAction.create({ data: { agentId: mrExplainer.id, actionType: 'comment', targetId: explainerComment.id } });
+  commentIds.push(explainerComment.id);
+  commentBodies.push(explainerResult.comment);
+  console.log(`  ✓ MrExplainer done`);
+
+  // ── Step 2: Embed the post paper ──────────────────────────────────────────
+  console.log('\n🔢 Step 2: Embedding post paper...');
+  const postText = [post.paperTitle, post.paperAbstract].filter(Boolean).join('\n\n');
+  const postEmbedding = await embedText(postText);
+
+  // Find the post's paper in DB (if ingested) so we can exclude it from candidates
+  const postPaperRecord = post.paperDoi
+    ? await prisma.paper.findFirst({ where: { doi: post.paperDoi }, select: { id: true } })
+    : null;
+
+  // ── Step 3: Find + audition candidate papers ───────────────────────────────
+  console.log('\n🎭 Step 3: Finding and auditioning candidate papers...');
+  const candidates = await findSimilarPapers(postEmbedding, postPaperRecord?.id, 25, prisma as any);
+  console.log(`  Found ${candidates.length} candidates`);
+
+  const winners: Array<{ candidate: typeof candidates[0]; angle: string }> = [];
+  for (const candidate of candidates) {
+    const result = await auditionPaper(post.postTitle, post.paperAbstract, candidate);
+    if (result.willComment && result.angle) {
+      winners.push({ candidate, angle: result.angle });
+      console.log(`  ✅ ${formatByline(candidate)} — ${result.angle.substring(0, 70)}`);
+    } else {
+      console.log(`  ⏭️  ${formatByline(candidate)} — pass`);
+    }
+  }
+  console.log(`  ${winners.length} papers will comment`);
+
+  // ── Step 4: Generate paper comments ──────────────────────────────────────
+  console.log('\n💬 Step 4: Generating paper comments...');
+  for (const { candidate, angle } of winners) {
+    const body = await generatePaperComment(
+      post.postTitle,
+      post.paperAbstract,
+      candidate,
+      angle,
+      commentBodies,
+    );
+    if (!body) continue;
+
+    const comment = await prisma.comment.create({
+      data: { postId, authorPaperId: candidate.id, body, score: 0, depth: 0, threadReplyCount: 0 },
+    });
+    commentIds.push(comment.id);
+    commentBodies.push(body);
+    console.log(`  ✓ ${formatByline(candidate)}: "${body.substring(0, 70)}..."`);
+  }
+
+  // ── Step 5: Paper voting ──────────────────────────────────────────────────
+  console.log('\n🗳️  Step 5: Paper voting...');
+  const allComments = await prisma.comment.findMany({
+    where: { postId },
+    select: { id: true, body: true },
+  });
+
+  // Sample 5 random papers (exclude papers that already commented)
+  const commenterIds = new Set(winners.map(w => w.candidate.id));
+  const voterPool = await prisma.paper.findMany({
+    where: { isRelevant: true, id: { notIn: Array.from(commenterIds) } },
+    select: { id: true, title: true, authors: true, year: true, abstract: true, fullText: true },
+    take: 50,
+  });
+  const voters = voterPool
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 5);
+
+  for (const voter of voters) {
+    for (const comment of allComments) {
+      const vote = await getPaperVote(
+        { id: voter.id, title: voter.title, abstract: voter.abstract, authors: voter.authors, year: voter.year, fullText: voter.fullText },
+        comment.body,
+        post.postTitle,
+      );
+      if (vote !== 0) {
+        await prisma.comment.update({
+          where: { id: comment.id },
+          data: { score: { increment: vote } },
+        });
+      }
+    }
+  }
+  console.log(`  ✓ ${voters.length} papers voted on ${allComments.length} comments`);
 
   return commentIds;
 }

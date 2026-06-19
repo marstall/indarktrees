@@ -7,13 +7,22 @@ type RecentComment = {
   id: string;
   body: string;
   postId: string;
-  author: {
-    username: string;
-  };
+  authorAgent: { username: string } | null;
+  authorPaper: { authors: string | null; year: number | null } | null;
   post: {
     postTitle: string;
   };
 };
+
+function commentByline(comment: RecentComment): string {
+  if (comment.authorAgent) return `@${comment.authorAgent.username}`;
+  if (comment.authorPaper) {
+    const last = (comment.authorPaper.authors || '').split(',')[0]?.split(' ')[0] ?? 'paper';
+    const suffix = (comment.authorPaper.authors || '').includes(',') ? ' et al.' : '';
+    return `${last}${suffix}${comment.authorPaper.year ? ` ${comment.authorPaper.year}` : ''}`;
+  }
+  return 'unknown';
+}
 
 export function RecentComments() {
   const [comments, setComments] = useState<RecentComment[]>([]);
@@ -22,7 +31,7 @@ export function RecentComments() {
 
   useEffect(() => {
     console.log('RecentComments mounted');
-    
+
     const fetchComments = async () => {
       try {
         console.log('Fetching comments from API...');
@@ -65,7 +74,7 @@ export function RecentComments() {
                 href={`/post/${comment.postId}#${comment.id}`}
                 className="block text-xs leading-relaxed hover:bg-gray-100 p-2 -m-2 rounded"
               >
-                <span className="font-bold">@{comment.author.username}</span>
+                <span className="font-bold">{commentByline(comment)}</span>
                 {' '}said "{preview}"
               </Link>
             );

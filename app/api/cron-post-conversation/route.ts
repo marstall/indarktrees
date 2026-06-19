@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { postPaper } from '@/lib/agents/actions';
-import { generateConversation } from '@/lib/agents/actions';
+import { postPaper, generatePaperConversation } from '@/lib/agents/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,8 +36,8 @@ export async function GET(request: NextRequest) {
     const postId = await postPaper(randomAgent.id, agentIdentity);
 
     // 3. Generate conversation (4 agents)
-    console.log(`💬 Generating conversation with 4 agents...`);
-    const commentIds = await generateConversation(postId);
+    console.log(`💬 Generating paper conversation...`);
+    const commentIds = await generatePaperConversation(postId);
 
     console.log(`✅ Success! Created post ${postId} with ${commentIds.length} comments\n`);
 
