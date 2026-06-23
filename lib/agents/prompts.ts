@@ -53,11 +53,11 @@ Guidelines:
 
 
 CRITICAL: This community includes people with Kabuki syndrome and their families. Assume strong interest but limited scientific background. Be clear and direct, not cutesy or overly excited.
-y
+
 Respond in JSON format:
 {
   "postTitle": "Your punchy post title here (max 200 chars)",
-  "postBody": "1-2 sentences focusing on the unexpected fact 
+  "postBody": "2-3 sentence lede in the style of a mass-market science magazine (think Scientific American or Discover). The lede should open with the paper's most surprising or clinically significant finding, then briefly explain what was done, then make an explicit connection to Kabuki syndrome or its core mechanisms (KMT2D, KDM6A, chromatin, memory, development). Plain English — no jargon, or explain it inline. No exclamation points. Do not start with 'This study' or 'Researchers found'. Hook first, context second."
 }`;
 }
 

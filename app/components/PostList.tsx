@@ -45,7 +45,7 @@ export function PostList({ initialPosts }: { initialPosts: Post[] }) {
             const scoreChanged = oldPost.score !== newPost.score;
             const commentsChanged = oldPost._count.comments !== newPost._count.comments;
             const positionChanged = oldIndex !== newIndex;
-            
+
             if (scoreChanged || commentsChanged || positionChanged) {
               console.log(`Post ${newPost.id.slice(0, 8)} changed:`, {
                 scoreChanged: scoreChanged ? `${oldPost.score} → ${newPost.score}` : false,
@@ -53,7 +53,7 @@ export function PostList({ initialPosts }: { initialPosts: Post[] }) {
                 positionChanged: positionChanged ? `${oldIndex} → ${newIndex}` : false,
               });
               changedPostIds.add(newPost.id);
-              
+
               // Show toast for new comments
               if (commentsChanged) {
                 setToast(`New comment by @${newPost.author.username} on "${newPost.postTitle}"`);
@@ -94,9 +94,7 @@ export function PostList({ initialPosts }: { initialPosts: Post[] }) {
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       <div className="space-y-3">
       {posts.map((post) => {
-        const bodyPreview = post.postBody
-          ? post.postBody.substring(0, 150) + (post.postBody.length > 150 ? '...' : '')
-          : null;
+        const bodyPreview = post.postBody ?? null;
 
         const isFlashing = flashingPosts.has(post.id);
 
@@ -106,10 +104,6 @@ export function PostList({ initialPosts }: { initialPosts: Post[] }) {
             className={`border-2 border-black p-3 bg-white hover:bg-[#e6f3ff] ${!isFlashing && 'transition-colors'} ${isFlashing ? 'flash-bg' : ''}`}
           >
             <div className="flex gap-3">
-              <div className="flex-shrink-0 w-12 text-center">
-                <div className="text-lg font-bold">▲ {post.score}</div>
-              </div>
-
               <div className="flex-1 min-w-0">
                 <Link href={`/post/${post.id}`} className="block">
                   <h2 className="text-lg font-bold hover:underline leading-tight font-typewriter">

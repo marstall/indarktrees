@@ -68,6 +68,8 @@ model Comment {
   parentCommentId String?
   authorAgentId   String?  // null for paper-authored comments
   authorPaperId   String?  // null for agent-authored comments
+  authorName      String?  @db.Text // for human commenters (cookie-based)
+  cookieId        String?            // anonymous user identifier
   body            String   @db.Text
   createdAt       DateTime @default(now())
   score           Int      @default(0)

@@ -2,6 +2,7 @@
 
 import ReactMarkdown from 'react-markdown';
 import { formatDistanceToNow } from 'date-fns';
+import { ReplySection } from './ReplySection';
 
 function formatPaperByline(paper: { authors: string | null; year: number | null }): string {
   const authorList = (paper.authors || '').split(',').map((a: string) => a.trim()).filter(Boolean);
@@ -11,9 +12,17 @@ function formatPaperByline(paper: { authors: string | null; year: number | null 
   return `${firstName}${suffix}${paper.year ? ` ${paper.year}` : ''}`;
 }
 
-export function CommentThread({ comment, depth = 0 }: { comment: any; depth?: number }) {
+interface CommentThreadProps {
+  comment: any;
+  depth?: number;
+  postTitle: string;
+  postAbstract: string | null;
+}
+
+export function CommentThread({ comment, depth = 0, postTitle, postAbstract }: CommentThreadProps) {
   const indent = depth * 24;
   const isPaperComment = Boolean(comment.authorPaper);
+  const isHumanComment = !comment.authorPaper && !comment.authorAgent;
 
   return (
     <div className="border-l-2 border-gray-300" style={{ marginLeft: `${indent}px` }}>
@@ -24,6 +33,11 @@ export function CommentThread({ comment, depth = 0 }: { comment: any; depth?: nu
               <span className="font-bold font-mono">{formatPaperByline(comment.authorPaper)}</span>
               <span className="mx-1">•</span>
               <span className="text-[10px] italic">{comment.authorPaper.title}</span>
+              <span className="mx-1">•</span>
+            </>
+          ) : isHumanComment ? (
+            <>
+              <span className="font-bold">👤 {comment.authorName || 'Anonymous'}</span>
               <span className="mx-1">•</span>
             </>
           ) : (
@@ -49,10 +63,27 @@ export function CommentThread({ comment, depth = 0 }: { comment: any; depth?: nu
           <ReactMarkdown>{comment.body}</ReactMarkdown>
         </div>
 
+        {isPaperComment && depth === 0 && (
+          <ReplySection
+            commentId={comment.id}
+            postTitle={postTitle}
+            postAbstract={postAbstract}
+            paperByline={formatPaperByline(comment.authorPaper)}
+            paperTitle={comment.authorPaper.title}
+            paperUrl={comment.authorPaper.url ?? (comment.authorPaper.doi ? `https://doi.org/${comment.authorPaper.doi}` : null)}
+          />
+        )}
+
         {comment.replies && comment.replies.length > 0 && depth < 3 && (
           <div className="mt-2">
             {(comment.replies as any[]).map((reply: any) => (
-              <CommentThread key={reply.id} comment={reply} depth={depth + 1} />
+              <CommentThread
+                key={reply.id}
+                comment={reply}
+                depth={depth + 1}
+                postTitle={postTitle}
+                postAbstract={postAbstract}
+              />
             ))}
           </div>
         )}

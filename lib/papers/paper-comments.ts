@@ -184,6 +184,44 @@ Respond ONLY in JSON: { "comment": "your full comment text" }`,
 }
 
 /**
+ * Stream a paper's reply to a human question.
+ * Returns a raw Anthropic MessageStream; the caller reads it chunk by chunk.
+ */
+export function streamPaperReply(
+  paper: PaperCandidate,
+  question: string,
+  originalCommentBody: string,
+  postTitle: string,
+  postAbstract: string | null,
+) {
+  const byline = formatByline(paper);
+  const paperContext = (paper.fullText || paper.abstract || '').substring(0, 2000);
+
+  return getClaude().messages.stream({
+    model: CLAUDE_QUALITY,
+    max_tokens: 800,
+    messages: [{
+      role: 'user',
+      content: `You are the research paper "${paper.title}" (${byline}).
+
+Your paper's content:
+${paperContext}
+
+Post being discussed: "${postTitle}"
+${postAbstract ? `Abstract: ${postAbstract}` : ''}
+
+Your earlier comment in this discussion:
+${originalCommentBody || '(You have not yet commented.)'}
+
+A reader has now asked you:
+${question}
+
+Reply directly and thoughtfully in the voice of your paper — 2–3 paragraphs, no markdown headers, flowing prose. Reference your specific findings where they bear on the question. You are a scientific paper speaking from your data, not a generic assistant.`,
+    }],
+  });
+}
+
+/**
  * Have a paper cast a +1 / -1 / 0 vote on a comment.
  */
 export async function getPaperVote(

@@ -542,7 +542,8 @@ export async function generatePaperConversation(postId: string, minComments = 5)
   // ── Step 3: Find + audition candidate papers ───────────────────────────────
   // Fetch a large pool sorted by similarity; audition until minComments winners found
   console.log('\n🎭 Step 3: Finding and auditioning candidate papers...');
-  const candidates = await findSimilarPapers(postEmbedding, postPaperRecord?.id, 200, prisma as any);
+  const candidates = (await findSimilarPapers(postEmbedding, postPaperRecord?.id, 200, prisma as any))
+    .sort(() => Math.random() - 0.5);
   console.log(`  Found ${candidates.length} candidates (need ${minComments} willing commenters)`);
 
   const winners: Array<{ candidate: typeof candidates[0]; angle: string }> = [];
