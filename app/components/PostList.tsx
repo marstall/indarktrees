@@ -12,6 +12,7 @@ type Post = {
   postBody: string | null;
   score: number;
   createdAt: string | Date;
+  paperByline: string | null;
   author: {
     username: string;
     specialty: string;
@@ -118,9 +119,9 @@ export function PostList({ initialPosts }: { initialPosts: Post[] }) {
                 )}
 
                 <div className="text-xs mt-2 text-gray-600">
-                  <span className="font-bold">@{post.author.username}</span>
-                  <span className="mx-1">•</span>
-                  <span>{post.author.specialty}</span>
+                  <span className="font-bold">
+                    {post.paperByline ? `AI, channelling ${post.paperByline}` : `@${post.author.username}`}
+                  </span>
                   <span className="mx-1">•</span>
                   <span>{post._count.comments} comments</span>
                   <span className="mx-1">•</span>

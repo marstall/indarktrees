@@ -40,7 +40,7 @@ export function formatByline(paper: { authors: string | null; year: number | nul
     .map(a => a.trim())
     .filter(Boolean);
 
-  if (authorList.length === 0) return paper.year ? String(paper.year) : 'Unknown';
+  if (authorList.length === 0) return paper.year ? `et al. ${paper.year}` : 'Unknown';
 
   const firstAuthorLastName = authorList[0].split(' ')[0];
   const suffix = authorList.length > 1 ? ' et al.' : '';

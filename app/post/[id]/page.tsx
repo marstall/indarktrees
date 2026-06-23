@@ -42,7 +42,7 @@ async function getPost(id: string) {
 
 function formatByline(paper: { authors: string | null; year: number | null }): string {
   const authors = (paper.authors || '').split(',').map(a => a.trim()).filter(Boolean);
-  if (authors.length === 0) return paper.year ? String(paper.year) : 'Unknown';
+  if (authors.length === 0) return paper.year ? `et al. ${paper.year}` : 'Unknown';
   const first = authors[0].split(' ')[0];
   const suffix = authors.length > 1 ? ' et al.' : '';
   return `${first}${suffix}${paper.year ? ` ${paper.year}` : ''}`;
@@ -78,9 +78,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           </h1>
 
           <div className="text-xs text-gray-600 mb-4">
-            <span className="font-bold">@{post.author.username}</span>
-            <span className="mx-1">•</span>
-            <span>{post.author.specialty}</span>
+            <span className="font-bold">
+              {postPaper ? `AI, channelling ${formatByline(postPaper)}` : `@${post.author.username}`}
+            </span>
             <span className="mx-1">•</span>
             <span>{formatDistanceToNow(post.createdAt, { addSuffix: true })}</span>
           </div>
@@ -122,7 +122,28 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             <p className="text-sm text-gray-500">No comments yet.</p>
           ) : (
             <div className="space-y-4">
-              {post.comments.map((comment) => (
+              <CommentThread
+                key={post.comments[0].id}
+                comment={post.comments[0]}
+                postTitle={post.postTitle}
+                postAbstract={post.paperAbstract ?? null}
+              />
+
+              {postPaper && (
+                <div className="py-3 border-t border-b border-gray-200">
+                  <ReplySection
+                    postId={post.id}
+                    postTitle={post.postTitle}
+                    postAbstract={post.paperAbstract ?? null}
+                    paperByline={formatByline(postPaper)}
+                    paperTitle={postPaper.title}
+                    paperUrl={postPaper.url ?? (postPaper.doi ? `https://doi.org/${postPaper.doi}` : null)}
+                    isTopLevel
+                  />
+                </div>
+              )}
+
+              {post.comments.slice(1).map((comment) => (
                 <CommentThread
                   key={comment.id}
                   comment={comment}
@@ -130,20 +151,6 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                   postAbstract={post.paperAbstract ?? null}
                 />
               ))}
-            </div>
-          )}
-
-          {postPaper && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <ReplySection
-                postId={post.id}
-                postTitle={post.postTitle}
-                postAbstract={post.paperAbstract ?? null}
-                paperByline={formatByline(postPaper)}
-                paperTitle={postPaper.title}
-                paperUrl={postPaper.url ?? (postPaper.doi ? `https://doi.org/${postPaper.doi}` : null)}
-                isTopLevel
-              />
             </div>
           )}
         </div>

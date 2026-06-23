@@ -57,7 +57,7 @@ CRITICAL: This community includes people with Kabuki syndrome and their families
 Respond in JSON format:
 {
   "postTitle": "Your punchy post title here (max 200 chars)",
-  "postBody": "2-3 sentence lede in the style of a mass-market science magazine (think Scientific American or Discover). The lede should open with the paper's most surprising or clinically significant finding, then briefly explain what was done, then make an explicit connection to Kabuki syndrome or its core mechanisms (KMT2D, KDM6A, chromatin, memory, development). Plain English — no jargon, or explain it inline. No exclamation points. Do not start with 'This study' or 'Researchers found'. Hook first, context second."
+  "postBody": "2-3 sentence lede in the style of a mass-market science magazine (think Scientific American or Discover). Open with the paper's most surprising or clinically significant finding, then briefly explain what was done. Plain English — no jargon, or explain it inline. No exclamation points. Do not start with 'This study' or 'Researchers found'. Hook first, context second."
 }`;
 }
 
@@ -141,7 +141,9 @@ ${MREXPLAINER_EXAMPLES}
 
 ---
 
-Now write an article about the following paper. Use only what is stated or clearly implied by the paper — do not hallucinate or extrapolate. Your reader already knows what Kabuki syndrome is; do not introduce or explain it. Do not welcome them or summarise what you are about to say. Open with a lede that hooks immediately.
+Now write an article about the following paper. Use only what is stated or clearly implied by the paper — do not hallucinate or extrapolate. Your reader already knows what Kabuki syndrome is; do not introduce or explain it unless the paper directly concerns it. Do not welcome them or summarise what you are about to say. Open with a lede that hooks immediately.
+
+End the article with a single short paragraph under the heading ### Kabuki connection that describes any meaningful connection between this paper's findings and Kabuki syndrome (shared genes, mechanisms, cell types, developmental windows, therapeutic angles). If the connection is speculative, say so briefly and honestly. If there is genuinely no meaningful connection, omit this section entirely.
 
 Paper title: ${postTitle}
 ${paperAbstract ? `\nAbstract:\n${paperAbstract}` : ''}

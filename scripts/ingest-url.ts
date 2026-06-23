@@ -110,13 +110,18 @@ async function upsertPaper(fields: ArticleFields, url: string, fullText: string)
   });
 
   if (existing) {
-    console.log(`  Paper already in DB (id: ${existing.id}) — updating isRelevant + fullText`);
+    console.log(`  Paper already in DB (id: ${existing.id}) — updating metadata + fullText`);
     await prisma.paper.update({
       where: { id: existing.id },
       data: {
         isRelevant: true,
         fullText: fullText.substring(0, 50000),
         fullTextSource: 'jina',
+        ...(fields.authors.length > 0 ? { authors: fields.authors.join(', ') } : {}),
+        ...(fields.year ? { year: fields.year } : {}),
+        ...(fields.doi ? { doi: fields.doi } : {}),
+        ...(fields.abstract ? { abstract: fields.abstract } : {}),
+        ...(fields.journal ? { journal: fields.journal } : {}),
       },
     });
     return existing.id;
@@ -255,17 +260,15 @@ async function main() {
   if (existingPost && !regen) {
     console.log(`\n⚠️  Post already exists (id: ${existingPost.id}). Use --regen to regenerate.`);
     return;
-  } else if (existingPost && regen) {
-    console.log(`\n🗑️  Deleting ${existingPost.id}'s comments...`);
-    const deleted = await prisma.comment.deleteMany({ where: { postId: existingPost.id } });
-    console.log(`   Deleted ${deleted.count} comment(s)`);
-    await prisma.post.update({
-      where: { id: existingPost.id },
-      data: { postTitle, postBody, paperAbstract: fields.abstract },
-    });
-    console.log(`   Updated post title/body`);
-    postId = existingPost.id;
-  } else {
+  }
+
+  if (existingPost && regen) {
+    console.log(`\n🗑️  Deleting post ${existingPost.id} (+ cascaded comments)...`);
+    await prisma.post.delete({ where: { id: existingPost.id } });
+    console.log(`   Deleted.`);
+  }
+
+  {
     // Step 6: Create post
     const postAuthor = await prisma.agent.findFirst();
     if (!postAuthor) throw new Error('No agents in DB');

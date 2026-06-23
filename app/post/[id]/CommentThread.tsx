@@ -6,7 +6,7 @@ import { ReplySection } from './ReplySection';
 
 function formatPaperByline(paper: { authors: string | null; year: number | null }): string {
   const authorList = (paper.authors || '').split(',').map((a: string) => a.trim()).filter(Boolean);
-  if (authorList.length === 0) return paper.year ? String(paper.year) : 'Unknown';
+  if (authorList.length === 0) return paper.year ? `et al. ${paper.year}` : 'Unknown';
   const firstName = authorList[0].split(' ')[0];
   const suffix = authorList.length > 1 ? ' et al.' : '';
   return `${firstName}${suffix}${paper.year ? ` ${paper.year}` : ''}`;
@@ -30,7 +30,7 @@ export function CommentThread({ comment, depth = 0, postTitle, postAbstract }: C
         <div className="text-[11px] text-gray-600 mb-1">
           {isPaperComment ? (
             <>
-              <span className="font-bold font-mono">{formatPaperByline(comment.authorPaper)}</span>
+              <span className="font-bold font-mono">AI, channelling {formatPaperByline(comment.authorPaper)}</span>
               <span className="mx-1">•</span>
               <span className="text-[10px] italic">{comment.authorPaper.title}</span>
               <span className="mx-1">•</span>
