@@ -502,7 +502,7 @@ export async function generateConversation(
  *   4. Papers that pass generate a comment (Claude Sonnet)
  *   5. 5 random papers vote on all comments (Claude Haiku)
  */
-export async function generatePaperConversation(postId: string): Promise<string[]> {
+export async function generatePaperConversation(postId: string, minComments = 5): Promise<string[]> {
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) throw new Error('Post not found');
 
@@ -540,21 +540,25 @@ export async function generatePaperConversation(postId: string): Promise<string[
     : null;
 
   // ── Step 3: Find + audition candidate papers ───────────────────────────────
+  // Fetch a large pool sorted by similarity; audition until minComments winners found
   console.log('\n🎭 Step 3: Finding and auditioning candidate papers...');
-  const candidates = await findSimilarPapers(postEmbedding, postPaperRecord?.id, 25, prisma as any);
-  console.log(`  Found ${candidates.length} candidates`);
+  const candidates = await findSimilarPapers(postEmbedding, postPaperRecord?.id, 200, prisma as any);
+  console.log(`  Found ${candidates.length} candidates (need ${minComments} willing commenters)`);
 
   const winners: Array<{ candidate: typeof candidates[0]; angle: string }> = [];
+  let auditioned = 0;
   for (const candidate of candidates) {
+    if (winners.length >= minComments) break;
+    auditioned++;
     const result = await auditionPaper(post.postTitle, post.paperAbstract, candidate);
     if (result.willComment && result.angle) {
       winners.push({ candidate, angle: result.angle });
-      console.log(`  ✅ ${formatByline(candidate)} — ${result.angle.substring(0, 70)}`);
+      console.log(`  ✅ [${auditioned}] ${formatByline(candidate)} — ${result.angle}`);
     } else {
-      console.log(`  ⏭️  ${formatByline(candidate)} — pass`);
+      console.log(`  ⏭️  [${auditioned}] ${formatByline(candidate)} — angle: ${result.angle ?? 'null'}`);
     }
   }
-  console.log(`  ${winners.length} papers will comment`);
+  console.log(`  ${winners.length} papers will comment (auditioned ${auditioned}/${candidates.length})`);
 
   // ── Step 4: Generate paper comments ──────────────────────────────────────
   console.log('\n💬 Step 4: Generating paper comments...');

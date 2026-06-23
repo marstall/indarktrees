@@ -45,7 +45,7 @@ export function CommentThread({ comment, depth = 0 }: { comment: any; depth?: nu
           <span>{formatDistanceToNow(comment.createdAt, { addSuffix: true })}</span>
         </div>
 
-        <div className="text-sm leading-relaxed prose prose-sm max-w-none [&_p]:mb-3 [&_p:last-child]:mb-0">
+        <div className="text-sm leading-relaxed prose prose-sm max-w-none [&_h3]:!text-sm [&_h3]:!font-bold [&_h3]:!mt-3 [&_h3]:!mb-1 [&_h4]:!text-sm [&_h4]:!font-semibold [&_h4]:!mt-2 [&_h4]:!mb-1 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:mb-3 [&_li]:mb-1">
           <ReactMarkdown>{comment.body}</ReactMarkdown>
         </div>
 

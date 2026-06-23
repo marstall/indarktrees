@@ -4,6 +4,7 @@
 
 import { AgentIdentity } from './identities';
 import { PubMedPaper } from '../pubmed';
+import { MREXPLAINER_PERSONA, MREXPLAINER_EXAMPLES } from './mrexplainer-config';
 
 /**
  * Generate prompt for creating a post about a paper
@@ -124,60 +125,30 @@ Respond in JSON format:
 }
 
 /**
- * Step 1: MrExplainer — friendly, accurate ~500-word ELI5 breakdown
+ * Step 1: MrExplainer — science journalism style explainer.
+ * Persona and style rules live in mrexplainer-config.ts — edit there.
  */
 export function getMrExplainerPrompt(
   postTitle: string,
   postBody: string | null,
   paperAbstract: string | null
 ): string {
-  return `You are MrExplainer. Your reader is already deeply familiar with Kabuki syndrome — a parent, a clinician, a researcher, or an advocate who follows the field closely. Do NOT introduce or explain what Kabuki syndrome is. Do NOT welcome them to the site or explain why they're reading this. They know.
+  return `${MREXPLAINER_PERSONA}
 
-Paper:
-Title: ${postTitle}
-${paperAbstract ? `Abstract: ${paperAbstract}` : ''}
-${postBody ? `Summary: ${postBody}` : ''}
+Here are three reference articles showing the target style and voice. Study them carefully before writing.
 
-OPENING — THE LEDE:
-Begin with a lede paragraph in the style of popular science journalism. This is a hook: a single compelling question or observation that names the most interesting or surprising thing in this paper and draws the reader in immediately. It should be simple to understand, require no background knowledge, and make the reader want to keep going. It can be a question. It should NOT be a welcome, an introduction to Kabuki, or a summary of what you are about to say.
-
-Here are three examples of good lede openings. Study the style and rhythm:
-
----
-EXAMPLE 1:
-It's known that Kabuki Syndrome's effects begin early - before birth. But how early? And what do these changes look like at the level of an individual cell?
-
-A new study published in eLife offers the clearest view yet, showing that the very cells that give rise to the cortex progress through their earliest steps too quickly and unevenly in Kabuki. By watching both the gene activity and physical structure of these developing cells, the researchers reveal a distinct pattern of rushed and irregular early growth, providing a new window into how Kabuki begins shaping the brain long before circuits and behavior emerge.
-
----
-EXAMPLE 2:
-Can Kabuki syndrome arise even when its gene still mostly works? A new Icelandic study tackles a question many families and researchers have wondered about: if some people with Kabuki syndrome carry small changes in one of the Kabuki genes—not full gene breakages—do those changes still disrupt development, and if so, how?
-
-### What the researchers did
-
-The team bred a line of mice with a tiny genetic change. Using the latest gene editing techniques, they introduced a specific Kabuki-associated variant into one of the genes that cause Kabuki. This variant sits in a region of the gene known to be a hotspot for Kabuki-related changes.
-
----
-EXAMPLE 3:
-Could the learning and developmental challenges seen in Kabuki syndrome begin much earlier in brain development than we usually imagine—at the moment when immature brain cells are deciding what they want to become?
-
-### What the researchers did
-
-In this 2025 study, researchers investigated how loss of KMT2D, the gene most commonly affected in Kabuki syndrome, alters very early brain development. They used stem cells to form tiny 3-D "mini-brains" that model early human brain development in a dish.
+${MREXPLAINER_EXAMPLES}
 
 ---
 
-After the lede, continue with approximately 400-450 more words covering: what the researchers did, what they found, and why it matters. Use ### markdown headers (e.g. \`### What the researchers did\`, \`### What they found\`, \`### Why it matters\`) to break up sections as shown in the examples.
+Now write an article about the following paper. Use only what is stated or clearly implied by the paper — do not hallucinate or extrapolate. Your reader already knows what Kabuki syndrome is; do not introduce or explain it. Do not welcome them or summarise what you are about to say. Open with a lede that hooks immediately.
 
-Strict rules for the entire piece:
-- ZERO scientific jargon. Everything in plain English.
-- The ONLY two scientific terms you may use without explanation are "KMT2D" and "KDM6A".
-- If you absolutely must use any other scientific term, use it once and immediately explain it in plain English in the same sentence.
-- Be warm but not condescending — assume the reader is intelligent.
-- Be strictly accurate — only state things supported by the paper. No extrapolation, no hallucinations.
+Paper title: ${postTitle}
+${paperAbstract ? `\nAbstract:\n${paperAbstract}` : ''}
+${postBody ? `\nAdditional context:\n${postBody}` : ''}
 
-Respond in JSON:
-{ "comment": "Your full explanation here" }`;
+Use ### markdown headers to break up sections. Respond in JSON:
+{ "comment": "Your full article here" }`;
 }
 
 /**

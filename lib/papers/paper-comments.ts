@@ -18,6 +18,7 @@ let _claude: Anthropic | null = null;
 function getClaude() {
   if (!_claude) _claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   return _claude;
+
 }
 
 export interface PaperCandidate {
@@ -48,6 +49,10 @@ export function formatByline(paper: { authors: string | null; year: number | nul
   return `${firstAuthorLastName}${suffix}${year}`;
 }
 
+function isCreditBalanceError(err: unknown): boolean {
+  return err instanceof Error && err.message.toLowerCase().includes('credit balance');
+}
+
 function parseClaudeJSON(text: string): Record<string, unknown> {
   const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
   return JSON.parse(cleaned);
@@ -73,26 +78,36 @@ export async function auditionPaper(
         role: 'user',
         content: `You are the research paper "${candidate.title}" (${byline}).
 
-A post has been shared about this paper:
+This is a discussion forum for Kabuki syndrome — a rare disorder caused by KMT2D or KDM6A mutations, causing intellectual disability, executive function deficits, memory problems, and neurodevelopmental differences. All papers here are Kabuki-related. Posts may come from adjacent neuroscience fields but are always selected for Kabuki relevance.
+
+A post has just been shared:
 Title: "${postTitle}"
 ${postAbstract ? `Abstract: ${postAbstract}` : ''}
 
-Your paper's content:
+Your findings:
 ${candidateContext}
 
-Do you have something genuinely informative and non-obvious to add to this discussion, based on YOUR paper's specific findings? Answer YES only if your paper directly extends, challenges, or adds important context to the posted paper's claims. Answer NO if your connection is tangential or you would mostly restate what the post already says.
+What specific insight from YOUR findings would you contribute to this discussion? Write one sentence describing exactly what you would add — either a direct scientific connection, or a Kabuki-angle bridge (e.g. "our findings on KMT2D loss in hippocampal circuits speak directly to the memory consolidation mechanisms this paper describes").
 
-Respond ONLY in JSON: { "willComment": boolean, "angle": "one sentence describing your specific contribution, or null if no" }`,
+If you genuinely have zero relevant findings — nothing about the mechanisms, circuits, cell types, genes, or conditions discussed — respond with null.
+
+Respond ONLY in JSON: { "angle": "your one-sentence contribution, or null" }`,
       }],
     });
 
     const text = res.content[0].type === 'text' ? res.content[0].text : '{}';
+    console.log(`    [raw] ${byline}: ${text.substring(0, 200)}`);
     const parsed = parseClaudeJSON(text);
+    const angle = typeof parsed.angle === 'string' && parsed.angle.toLowerCase() !== 'null' ? parsed.angle : null;
     return {
-      willComment: Boolean(parsed.willComment),
-      angle: typeof parsed.angle === 'string' ? parsed.angle : null,
+      willComment: angle !== null,
+      angle,
     };
-  } catch {
+  } catch (err) {
+    console.log(`    [err] ${byline}: ${err}`);
+    if (isCreditBalanceError(err)) {
+      throw new Error(`Anthropic API credit balance exhausted — please top up your account. (${err instanceof Error ? err.message : err})`);
+    }
     return { willComment: false, angle: null };
   }
 }
@@ -160,7 +175,10 @@ Respond ONLY in JSON: { "comment": "your full comment text" }`,
     return typeof parsed.comment === 'string' && parsed.comment.length > 0
       ? parsed.comment
       : null;
-  } catch {
+  } catch (err) {
+    if (isCreditBalanceError(err)) {
+      throw new Error(`Anthropic API credit balance exhausted — please top up your account. (${err instanceof Error ? err.message : err})`);
+    }
     return null;
   }
 }
@@ -196,7 +214,10 @@ Respond ONLY in JSON: { "vote": 1 | 0 | -1 }`,
     const parsed = parseClaudeJSON(text);
     const v = Number(parsed.vote);
     return v === 1 ? 1 : v === -1 ? -1 : 0;
-  } catch {
+  } catch (err) {
+    if (isCreditBalanceError(err)) {
+      throw new Error(`Anthropic API credit balance exhausted — please top up your account. (${err instanceof Error ? err.message : err})`);
+    }
     return 0;
   }
 }

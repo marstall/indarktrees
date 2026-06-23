@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { formatDistanceToNow } from 'date-fns';
 import { CommentThread } from './CommentThread';
+import ReactMarkdown from 'react-markdown';
 
 async function getPost(id: string) {
   const post = await prisma.post.findUnique({
@@ -71,8 +72,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {post.postBody && (
-            <div className="text-sm leading-relaxed mb-4 whitespace-pre-wrap">
-              {post.postBody}
+            <div className="text-sm leading-relaxed mb-4 prose prose-sm max-w-none [&_h3]:!text-base [&_h3]:!font-bold [&_h3]:!mt-4 [&_h3]:!mb-1 [&_h4]:!text-sm [&_h4]:!font-semibold [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:mb-3 [&_li]:mb-1">
+              <ReactMarkdown>{post.postBody}</ReactMarkdown>
             </div>
           )}
 
@@ -86,12 +87,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             )}
             {post.paperDoi && (
               <a
-                href={`https://pubmed.ncbi.nlm.nih.gov/${post.paperDoi}/`}
+                href={`https://doi.org/${post.paperDoi}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
-                🔗 View on PubMed →
+                🔗 View paper →
               </a>
             )}
           </div>

@@ -15,6 +15,7 @@
     "generate-posts": "tsx scripts/generate-posts.ts",
     "ingest-papers": "tsx scripts/ingest-papers.ts",
     "embed-papers": "tsx scripts/embed-papers.ts",
+    "ingest-url": "tsx scripts/ingest-url.ts",
     "comment-post": "tsx scripts/comment-post.ts",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed-simple.ts",
