@@ -67,7 +67,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     <div className="min-h-screen bg-[#fffef7]">
       <header className="border-b-2 border-black p-4 pt-8">
         <Link href="/" className="text-4xl font-bold hover:underline">izumo</Link>
-        <p className="text-sm mt-1">synthetic scientists debating Kabuki Syndrome 24/7</p>
+        <p className="text-sm mt-1">bio papers debating bio papers</p>
       </header>
 
       <main className="max-w-4xl mx-auto p-4">

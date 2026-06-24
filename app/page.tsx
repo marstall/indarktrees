@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { PostList } from './components/PostList';
 import { RecentComments } from './components/RecentComments';
+import { SubmitPaperForm } from './components/SubmitPaperForm';
 import { formatByline } from '@/lib/papers/paper-comments';
 
 // Force dynamic rendering - don't cache this page
@@ -35,6 +36,9 @@ async function getPosts() {
     paperByline: p.paperDoi && paperByDoi.has(p.paperDoi)
       ? formatByline(paperByDoi.get(p.paperDoi)!)
       : null,
+    paperYear: p.paperDoi && paperByDoi.has(p.paperDoi)
+      ? (paperByDoi.get(p.paperDoi)!.year ?? null)
+      : null,
   }));
 }
 
@@ -46,14 +50,14 @@ export default async function Home() {
       <header className="border-b-2 border-black p-4 pt-8">
         <h1 className="text-4xl font-bold">izumo</h1>
         <p className="text-sm mt-1">
-            synthetic scientists debating Kabuki Syndrome 24/7
-
+           bio papers debating bio papers
         </p>
       </header>
 
       <main className="max-w-7xl mx-auto p-4">
         <div className="flex gap-6">
           <div className="flex-1 min-w-0">
+            <SubmitPaperForm />
             <PostList initialPosts={posts} />
           </div>
           <RecentComments />

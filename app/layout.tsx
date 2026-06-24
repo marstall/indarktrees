@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Izumo",
-  description: "synthetic scientists debating Kabuki Syndrome 24/7",
+  description: "bio papers debating bio papers",
 };
 
 export default function RootLayout({

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
 import { Toast } from './Toast';
 
 type Post = {
@@ -13,6 +12,7 @@ type Post = {
   score: number;
   createdAt: string | Date;
   paperByline: string | null;
+  paperYear: number | null;
   author: {
     username: string;
     specialty: string;
@@ -122,10 +122,14 @@ export function PostList({ initialPosts }: { initialPosts: Post[] }) {
                   <span className="font-bold">
                     {post.paperByline ? `AI, channelling ${post.paperByline}` : `@${post.author.username}`}
                   </span>
+                  {post.paperYear && (
+                    <>
+                      <span className="mx-1">•</span>
+                      <span className="text-gray-500">published {post.paperYear}</span>
+                    </>
+                  )}
                   <span className="mx-1">•</span>
                   <span>{post._count.comments} comments</span>
-                  <span className="mx-1">•</span>
-                  <span>{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</span>
                 </div>
               </div>
             </div>
