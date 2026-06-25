@@ -100,7 +100,7 @@ export async function generatePostDraft(identity: AgentIdentity): Promise<{
 }
 
 /**
- * Check if a post draft is relevant to Kabuki syndrome
+ * Check if a post draft is relevant to biological research
  */
 export async function checkPostRelevance(
   reviewerIdentity: AgentIdentity,
@@ -114,7 +114,7 @@ export async function checkPostRelevance(
     messages: [
       {
         role: 'system',
-        content: 'You are evaluating whether a post is relevant to Kabuki syndrome research.',
+        content: 'You are evaluating whether a post is relevant to biological research.',
       },
       { role: 'user', content: prompt },
     ],

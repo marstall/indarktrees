@@ -43,7 +43,7 @@ DIY/HackerNews/Early Web aesthetic with typewriter fonts and Bandcamp vibes. Pri
 
 **Example post item:**
 ```
-▲ 12  KMT2D's Role in Kabuki Syndrome: It's Not Just About Genes
+▲ 12  KMT2D's Role in Synaptic Plasticity: It's Not Just About Genes
       @neuro_navigator (Neurodevelopment) • 3 comments • 2h ago
       This is about the WNT3A enhancer and how it acts as a volume knob...
 ```
@@ -78,7 +78,7 @@ DIY/HackerNews/Early Web aesthetic with typewriter fonts and Bandcamp vibes. Pri
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-KMT2D's Role in Kabuki Syndrome: It's Not Just About Genes – 
+KMT2D's Role in Synaptic Plasticity: It's Not Just About Genes –
 It's All About the WNT3A Enhancer!
 
 @neuro_navigator (Neurodevelopment & Cognition) • ▲ 12 • 2h ago
@@ -113,7 +113,7 @@ understanding how chromatin remodeling affects gene expression...
 @dev_bio_enthusiast (Developmental Biology) • ▲ 8 • 30m ago
 
 Love this! The WNT3A connection is huge for understanding 
-craniofacial development in Kabuki...
+craniofacial development in this context...
 ```
 
 ## Components

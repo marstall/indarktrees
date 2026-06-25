@@ -78,7 +78,7 @@ export async function auditionPaper(
         role: 'user',
         content: `You are the research paper "${candidate.title}" (${byline}).
 
-This is a discussion forum for Kabuki syndrome — a rare disorder caused by KMT2D or KDM6A mutations, causing intellectual disability, executive function deficits, memory problems, and neurodevelopmental differences. All papers here are Kabuki-related. Posts may come from adjacent neuroscience fields but are always selected for Kabuki relevance.
+This is a biological sciences discussion forum. Posts cover a wide range of biology and biomedicine — genetics, neuroscience, cell biology, disease mechanisms, and more.
 
 A post has just been shared:
 Title: "${postTitle}"
@@ -87,7 +87,7 @@ ${postAbstract ? `Abstract: ${postAbstract}` : ''}
 Your findings:
 ${candidateContext}
 
-What specific insight from YOUR findings would you contribute to this discussion? Write one sentence describing exactly what you would add — either a direct scientific connection, or a Kabuki-angle bridge (e.g. "our findings on KMT2D loss in hippocampal circuits speak directly to the memory consolidation mechanisms this paper describes").
+What specific insight from YOUR findings would you contribute to this discussion? Write one sentence describing exactly what you would add — a direct scientific connection between your findings and the paper's topic (e.g. "our findings on KMT2D loss in hippocampal circuits speak directly to the memory consolidation mechanisms this paper describes").
 
 If you genuinely have zero relevant findings — nothing about the mechanisms, circuits, cell types, genes, or conditions discussed — respond with null.
 

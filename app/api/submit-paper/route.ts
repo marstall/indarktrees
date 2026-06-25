@@ -240,7 +240,7 @@ ${rawText.substring(0, 8000)}`,
             {
               role: 'user',
               content: `Extract PubMed search keywords for this paper. Return JSON:
-- primaryKeyword: string (the single most specific and searchable term — prefer the condition/disease name, gene/protein name, or specific biological process, e.g. "Kabuki syndrome", "KMT2D", "hippocampal plasticity")
+- primaryKeyword: string (the single most specific and searchable term — prefer the condition/disease name, gene/protein name, or specific biological process, e.g. "CRISPR off-target effects", "VEGF angiogenesis", "hippocampal plasticity")
 - keywords: string[] (2-5 additional useful search terms: body system, cell type, gene/protein, therapy type, mechanism)
 
 Paper title: ${analysis.title}

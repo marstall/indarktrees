@@ -240,10 +240,9 @@ export async function searchPubMedWithDetails(
 }
 
 /**
- * Generate search queries for Kabuki syndrome research based on specialty
+ * Generate search queries for biological research based on specialty
  */
 export function generateSearchQuery(specialty: string): string {
-  const baseQuery = 'Kabuki syndrome OR KMT2D OR KDM6A';
 
   const specialtyKeywords: Record<string, string> = {
     'Epigenetics': 'epigenetics OR chromatin OR histone methylation',
@@ -273,10 +272,10 @@ export function generateSearchQuery(specialty: string): string {
   // Find matching keywords
   for (const [key, keywords] of Object.entries(specialtyKeywords)) {
     if (specialty.toLowerCase().includes(key.toLowerCase())) {
-      return `(${baseQuery}) AND (${keywords})`;
+      return keywords;
     }
   }
 
-  // Default: just Kabuki syndrome
-  return baseQuery;
+  // Default: broad life sciences
+  return 'biology OR neuroscience OR genetics OR biomedicine';
 }

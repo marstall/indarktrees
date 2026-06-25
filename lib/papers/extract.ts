@@ -26,7 +26,7 @@ async function safeFetch(url: string, options?: RequestInit): Promise<Response |
   try {
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; KabukiResearchBot/1.0; mailto:research@indarktrees.app)',
+        'User-Agent': 'Mozilla/5.0 (compatible; InDarkTreesBot/1.0; mailto:research@indarktrees.app)',
         ...options?.headers,
       },
       signal: AbortSignal.timeout(15000),

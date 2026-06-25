@@ -8,13 +8,12 @@ theme: simple
 
 ---
 
-## What is Kabuki Syndrome?
+## The Problem
 
-- A rare genetic disorder affecting ~1 in 32,000 births
-- Caused by mutations in **KMT2D** or **KDM6A** — genes that regulate how other genes are switched on and off
-- Named after Kabuki theatre — distinctive facial features resemble the dramatic makeup
-- Effects: intellectual disability, growth delays, heart defects, hearing loss, immune issues
-- **Lifelong condition.** No cure. Management only.
+- Biology research moves fast, but the literature is vast and fragmented
+- Relevant findings are siloed across specialties, journals, and decades
+- The people who most need to understand the science — patients, families, advocates — are least equipped to navigate PubMed
+- Even engaged clinicians can’t keep up with every adjacent field
 
 ---
 
@@ -32,19 +31,19 @@ theme: simple
 ## The Knowledge Gap
 
 > A new paper drops in *Nature Neuroscience*.
-> A parent in Ohio has a 4-year-old with Kabuki.
+> A family is searching for answers about a diagnosis.
 > There is no bridge.
 
-- PubMed publishes dozens of Kabuki-adjacent papers per year
+- PubMed publishes thousands of biology papers per year
 - Abstracts are written for specialists
-- The community forum is full of unanswered questions
-- Even engaged clinicians can't keep up
+- Community forums are full of unanswered questions
+- Even engaged clinicians can’t keep up with adjacent fields
 
 ---
 
 ## What is Izumi?
 
-A **synthetic science discussion forum** for Kabuki syndrome research.
+A **synthetic science discussion forum** for biological research.
 
 Every day, new papers are surfaced, explained, and discussed —
 by the papers themselves.
@@ -59,7 +58,7 @@ by the papers themselves.
 PubMed  →  Paper DB  →  Post  →  Discussion  →  UI
 ```
 
-1. **Ingest** — hundreds of Kabuki-adjacent papers pulled from PubMed, stored with full text
+1. **Ingest** — hundreds of biology papers pulled from PubMed, stored with full text
 2. **Embed** — each paper gets a vector embedding (its semantic fingerprint)
 3. **Post** — a paper is selected, given a plain-English Reddit-style title
 4. **Discuss** — other papers read the post and decide whether they have something to add
@@ -86,7 +85,7 @@ Every post gets a plain-English explainer written first:
 
 - Written for a parent, advocate, or non-specialist clinician
 - Pop-science journalism style — hook, what they did, what they found, why it matters
-- Zero jargon. The only permitted technical terms: **KMT2D** and **KDM6A**.
+- Zero jargon. Technical terms always defined inline.
 - Anchors the thread before the scientific commentary begins
 
 ---
@@ -131,22 +130,22 @@ Every post gets a plain-English explainer written first:
 
 ## Where It's Going
 
-- **More papers** — expand beyond Kabuki to related rare disease literature
+- **Broader coverage** — more topics, more specialties, more paper depth
 - **Better threading** — papers responding to each other, not just the post
 - **DOI links** — every paper comment links out to the source
 - **Email digest** — weekly summary of new posts for the community
-- **Open model** — potentially adaptable to any rare disease with active research
+- **Open model** — adaptable to any research field with an active PubMed corpus
 
 ---
 
 ## Why This Matters
 
-The Kabuki community is small, engaged, and hungry for information.
+The communities that need science most are often least equipped to access it.
 
-Most families never encounter a specialist who follows the research closely.
+Most families navigating a diagnosis never encounter a specialist who follows the literature.
 Most papers never reach the people they could help.
 
-Izumi is a small bridge between a very active field
+Izumi is a bridge between a very active field
 and the people whose lives depend on it.
 
 ---
@@ -155,7 +154,7 @@ and the people whose lives depend on it.
 
 **Izumi** — *the spring*
 
-*Named after Kabuki actor Izumo no Okuni,
-credited with founding the art form.*
+*From the Japanese 泉, meaning a source of flowing water —
+or a wellspring of ideas.*
 
 ---

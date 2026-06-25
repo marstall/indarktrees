@@ -82,7 +82,7 @@ async function testConversation() {
     const relevanceResponse = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'You are evaluating whether a post is relevant to Kabuki syndrome research.' },
+        { role: 'system', content: 'You are evaluating whether a post is relevant to biological research.' },
         { role: 'user', content: relevancePrompt },
       ],
       response_format: { type: 'json_object' },

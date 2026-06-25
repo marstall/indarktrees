@@ -48,6 +48,8 @@ export function SubmitPaperForm() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [definition, setDefinition] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -129,23 +131,29 @@ export function SubmitPaperForm() {
     await runSubmission(url.trim());
   }
 
-  async function handleSearch() {
-    if (!searchQuery.trim() || isSearching) return;
+  async function handleSearch(query?: string) {
+    const q = (query ?? searchQuery).trim();
+    if (!q || isSearching) return;
+    if (query) setSearchQuery(query);
     setIsSearching(true);
     setSearchError('');
     setSearchResults([]);
+    setSuggestions([]);
+    setDefinition('');
     setHasSearched(true);
 
     try {
-      const res = await fetch(`/api/pubmed-search?q=${encodeURIComponent(searchQuery.trim())}`);
+      const res = await fetch(`/api/pubmed-search?q=${encodeURIComponent(q)}`);
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
         setSearchError(json.error || 'Search failed. Please try again.');
         return;
       }
-      const results: SearchResult[] = await res.json();
-      setSearchResults(results);
-      if (results.length === 0) setSearchError('No results found. Try different keywords.');
+      const data = await res.json() as { papers: SearchResult[]; suggestions: string[]; definition: string };
+      setSearchResults(data.papers ?? []);
+      setSuggestions(data.suggestions ?? []);
+      setDefinition(data.definition ?? '');
+      if ((data.papers ?? []).length === 0) setSearchError('No results found. Try different keywords.');
     } catch {
       setSearchError('Search failed. Please check your connection.');
     } finally {
@@ -296,13 +304,13 @@ export function SubmitPaperForm() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="e.g. Kabuki syndrome KMT2D, hippocampal plasticity..."
+                placeholder="e.g. CRISPR off-target effects, hippocampal plasticity, VEGF..."
                 disabled={isSearching}
                 className="flex-1 text-sm border border-gray-300 px-3 py-2 focus:outline-none focus:border-gray-600 bg-white disabled:bg-gray-50 disabled:text-gray-400"
                 autoComplete="off"
               />
               <button
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 disabled={isSearching || !searchQuery.trim()}
                 className="text-sm bg-black text-white px-4 py-2 hover:bg-gray-800 disabled:opacity-40 transition-colors whitespace-nowrap"
               >
@@ -314,6 +322,10 @@ export function SubmitPaperForm() {
               <p className="mt-2 text-xs text-red-600">{searchError}</p>
             )}
 
+            {definition && (
+              <p className="mt-3 text-xs text-gray-600 italic border-l-2 border-gray-200 pl-2">{definition}</p>
+            )}
+
             {phase === 'error' && (
               <div className="mt-2">
                 <p className="text-xs text-red-600">{errorMessage}</p>
@@ -323,30 +335,62 @@ export function SubmitPaperForm() {
               </div>
             )}
 
-            {searchResults.length > 0 && (
-              <div className="mt-3 space-y-2 max-h-96 overflow-y-auto">
-                {searchResults.map(result => (
-                  <div
-                    key={result.pmid}
-                    className="border border-gray-200 p-3 hover:border-gray-400 hover:bg-gray-50 transition-colors"
-                  >
-                    <p className="text-sm font-medium leading-snug mb-1">{result.title}</p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {formatAuthors(result.authors)}
-                      {result.journal && <> · {result.journal}</>}
-                      {result.pubDate && <> · {result.pubDate}</>}
-                    </p>
-                    {result.abstract && (
-                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">{result.abstract}</p>
-                    )}
+            {suggestions.length > 0 && (
+              <p className="mt-2 text-xs text-gray-400">
+                related:{' '}
+                {suggestions.map((s, i) => (
+                  <span key={s}>
                     <button
-                      onClick={() => runSubmission(result.url)}
-                      className="text-xs bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                      onClick={() => handleSearch(s)}
+                      className="underline hover:text-gray-700 transition-colors"
                     >
-                      Submit this paper →
+                      {s}
                     </button>
-                  </div>
+                    {i < suggestions.length - 1 && ', '}
+                  </span>
                 ))}
+              </p>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs text-gray-400 mb-2">
+                  {searchResults.length} results · most recent first
+                </p>
+                <div className="space-y-2 max-h-[32rem] overflow-y-auto">
+                  {searchResults.map(result => (
+                    <div
+                      key={result.pmid}
+                      className="border border-gray-200 p-3 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                    >
+                      <p className="text-sm font-medium leading-snug mb-1">{result.title}</p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        {formatAuthors(result.authors)}
+                        {result.journal && <> · {result.journal}</>}
+                        {result.pubDate && <> · {result.pubDate}</>}
+                        <> · </>
+                        <a
+                          href={result.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-gray-700"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          PubMed ↗
+                        </a>
+                      </p>
+                      {result.abstract && (
+                        <p className="text-xs text-gray-600 mb-2 line-clamp-2">{result.abstract}</p>
+                      )}
+                      <button
+                        onClick={() => runSubmission(result.url)}
+                        className="text-xs bg-black text-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                      >
+                        Submit this paper →
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

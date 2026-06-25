@@ -8,8 +8,8 @@ async function main() {
   console.log('🧪 Testing PubMed integration...\n');
 
   // Test 1: Basic search
-  console.log('Test 1: Searching for Kabuki syndrome papers...');
-  const query = 'Kabuki syndrome KMT2D';
+  console.log('Test 1: Searching for hippocampal plasticity papers...');
+  const query = 'hippocampal plasticity CREB';
   console.log(`Query: "${query}"\n`);
 
   const papers = await searchPubMedWithDetails(query, 5);

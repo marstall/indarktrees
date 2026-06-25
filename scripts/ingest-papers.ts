@@ -2,9 +2,9 @@
  * Paper ingestion pipeline.
  *
  * Search mode (recommended for bulk ingestion):
- *   npm run ingest-papers -- --search "kabuki syndrome" --months 24
+ *   npm run ingest-papers -- --search "hippocampal plasticity" --months 24
  *   npm run ingest-papers -- --search "KMT2D" --months 12 --always-relevant
- *   npm run ingest-papers -- --search "kabuki syndrome" --months 24 --limit 500 --dry-run
+ *   npm run ingest-papers -- --search "CRISPR off-target" --months 24 --limit 500 --dry-run
  *
  * Topic mode (multi-query across defined topics):
  *   npm run ingest-papers                   # all topics, 15 per query
@@ -59,22 +59,19 @@ async function checkPaperRelevance(
     messages: [
       {
         role: 'system',
-        content: `You assess whether a research paper belongs in a knowledge base about Kabuki syndrome.
+        content: `You assess whether a research paper belongs in a biological sciences knowledge base.
 
 RELEVANT papers include:
-- Research directly about Kabuki syndrome
-- Studies on KMT2D or KDM6A mutations or function (in any context)
-- H3K4 methylation, enhancer regulation, or chromatin remodeling relevant to neurodevelopment
-- Hippocampus, learning, memory, or synaptic plasticity involving epigenetic regulation
-- CREB signaling and cognitive development
-- HDAC inhibitors in neurodevelopment or intellectual disability
-- Environmental enrichment and brain plasticity or cognitive outcomes
-- Any paper that illuminates the biology or potential treatment of Kabuki syndrome
+- Original research in biology, biomedicine, neuroscience, genetics, or related life sciences
+- Studies on genes, proteins, cells, organisms, or biological mechanisms
+- Disease biology, developmental biology, physiology, or systems biology
+- Clinical studies with mechanistic or translational insight
+- Reviews or meta-analyses with substantive biological content
 
 NOT relevant:
-- KMT2D in cancer with no developmental angle
+- Purely computational or engineering papers with no biological findings
 - Purely clinical case reports with no mechanistic insight
-- Papers mentioning epigenetics only incidentally
+- Papers only incidentally mentioning biology
 
 Respond ONLY in JSON: { "isRelevant": boolean, "reasoning": "one sentence" }`,
       },
@@ -277,7 +274,7 @@ async function main() {
   // ---- Search mode ----
   if (SEARCH_TERM) {
     const mindate = monthsAgoDate(MONTHS);
-    console.log(`\n🧬 Kabuki Paper Ingestion — Search Mode`);
+    console.log(`\n🧬 Paper Ingestion — Search Mode`);
     console.log(`   Query:   "${SEARCH_TERM}"`);
     console.log(`   Since:   ${mindate} (${MONTHS} months)`);
     console.log(`   Limit:   ${LIMIT}`);
@@ -316,7 +313,7 @@ async function main() {
       process.exit(1);
     }
 
-    console.log(`\n🧬 Kabuki Paper Ingestion — Topic Mode`);
+    console.log(`\n🧬 Paper Ingestion — Topic Mode`);
     console.log(`   Topics:  ${topics.map(t => `"${t.name}"`).join(', ')}`);
     console.log(`   Limit:   ${LIMIT} per query`);
     if (DRY_RUN) console.log(`   Mode:    DRY RUN`);

@@ -13,12 +13,6 @@ export interface SearchTopic {
 
 export const SEARCH_TOPICS: SearchTopic[] = [
   {
-    name: 'kabuki syndrome',
-    queries: [
-      'Kabuki syndrome'
-    ],
-  },
-  {
     name: 'kmt2d',
     queries: [
       'KMT2D',
