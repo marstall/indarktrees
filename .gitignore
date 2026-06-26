@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# patient profiles — real medical PII. Keep only the fictional example + readme.
+/profiles/*
+!/profiles/example.txt
+!/profiles/README.md
+
 # vercel
 .vercel
 

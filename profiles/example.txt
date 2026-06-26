@@ -1,0 +1,36 @@
+EXAMPLE PROFILE — FICTIONAL. Safe to commit. Copy this file to `<id>.txt` (gitignored)
+and replace with real information to create a real case.
+
+=== WHO ===
+Name: Alex (fictional)
+Age: 6
+Relationship of profile owner to patient: parent (advocate)
+
+=== DIAGNOSIS ===
+Primary: A rare neurodevelopmental condition caused by a loss-of-function variant in a
+chromatin-regulating gene. Confirmed by trio whole-exome sequencing.
+Variant: c.0000X>Y (p.ArgXTer), de novo, classified pathogenic.
+
+=== TESTING & DIAGNOSTICS ===
+- Whole-exome sequencing: de novo pathogenic variant identified
+- Brain MRI: unremarkable
+- EEG: no epileptiform activity
+- Audiology: mild conductive hearing loss, resolved with tubes
+- Growth: height/weight tracking ~10th percentile
+
+=== PHENOTYPE / OBSERVATIONS ===
+- Hypotonia (low muscle tone) noted from infancy
+- Feeding difficulties in first year, now resolved
+- Speech delay; uses ~50 words plus some signs
+- Loves music and water play; calmest in predictable routines
+- Sensitive to loud, sudden noises
+- Strong social motivation — seeks out other kids
+
+=== LEARNING & DEVELOPMENT (contributed by grandparent, early-childhood educator) ===
+Learns best through repetition and song. Picks up routines quickly once they are consistent.
+Struggles with transitions between activities more than peers. Visual schedules help a lot.
+
+=== CURRENT QUESTIONS THE FAMILY IS CARRYING ===
+- Are the attention/memory challenges connected to the same pathway as the low muscle tone?
+- Is there anything in the literature about interventions that help with transitions?
+- Any nutritional or off-label angles worth asking the care team about?
