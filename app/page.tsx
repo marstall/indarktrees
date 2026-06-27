@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { PostList } from './components/PostList';
 import { RecentComments } from './components/RecentComments';
 import { SubmitPaperForm } from './components/SubmitPaperForm';
+import { DeleteToast } from './components/DeleteToast';
 import { formatByline } from '@/lib/papers/paper-comments';
 
 // Force dynamic rendering - don't cache this page
@@ -42,11 +43,14 @@ async function getPosts() {
   }));
 }
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const params = await searchParams;
+  const deletedTitle = typeof params.deleted === 'string' ? params.deleted : null;
   const posts = await getPosts();
 
   return (
     <div className="min-h-screen bg-[#fffef7]">
+      <DeleteToast deletedTitle={deletedTitle} />
       <header className="border-b-2 border-black p-4 pt-8">
         <h1 className="text-4xl font-bold">izumo</h1>
         <p className="text-sm mt-1">

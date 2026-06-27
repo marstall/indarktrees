@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { formatDistanceToNow } from 'date-fns';
 import { CommentThread } from './CommentThread';
 import { ReplySection } from './ReplySection';
+import { DeleteButton } from './DeleteButton';
 import ReactMarkdown from 'react-markdown';
 
 async function getPost(id: string) {
@@ -154,6 +155,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
         </div>
+
+        <DeleteButton postId={post.id} postTitle={post.postTitle} />
       </main>
     </div>
   );
